@@ -52,9 +52,9 @@ namespace Micron_AGV_WebService.DAL
                     {
                         // 使用RFID + 儲位修改放貨時間 & 叫車子離開
                         var StorageBinLog = _db.PurchaseAndShipmentLogs.Where(x => x.RFID == StorageBinData.RFID && x.Storage == PurchaseStorageBin).FirstOrDefault();
-                        StorageBinLog.PurchaseTime = PurchaseTime;
+                        StorageBinLog.UpdateTime = PurchaseTime;
                     }
-                    // 放貨狀態 == 異常
+                    // 放貨狀態 == 異常 
                     else
                     {
                         ResponseStr[0] = "X"; 
