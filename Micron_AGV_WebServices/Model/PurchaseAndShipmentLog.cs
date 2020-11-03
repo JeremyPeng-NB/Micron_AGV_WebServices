@@ -19,16 +19,12 @@ namespace Micron_AGV_WebServices.Model
         [Column(Order = 1)]
         public string Storage { get; set; }
 
-        public DateTime? PurchaseTime { get; set; }
-
-        public DateTime? ShipmentTime { get; set; }
-
-        [Key]
-        [Column(Order = 2)]
-        public DateTime DispatchTime { get; set; }
+        public DateTime? UpdateTime { get; set; }
 
         [Key]
         [Column(Order = 3)]
         public string Cargostatus { get; set; }
+
+        public string AGVID { get; set; }
     }
 }
