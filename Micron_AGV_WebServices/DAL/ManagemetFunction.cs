@@ -48,7 +48,7 @@ namespace Micron_AGV_WebService.DAL
                     ResponseStr[1] = StorageBinData.AGVID;
 
                     // 放貨狀態 == 正常
-                    if (StorageBinData.Status == "正常")
+                    if (StorageBinData.Status != "failure")
                     {
                         // 使用RFID + 儲位修改放貨時間 & 叫車子離開
                         var StorageBinLog = _db.PurchaseAndShipmentLogs.Where(x => x.RFID == StorageBinData.RFID && x.Storage == PurchaseStorageBin).FirstOrDefault();
@@ -84,7 +84,6 @@ namespace Micron_AGV_WebService.DAL
 
         private void PackageStatusFunc(ShelfManagement StorageBinData, DateTime ShipmentTime)
         {
-            StorageBinData.RFID = string.Empty;
             StorageBinData.Status = "正常";
             StorageBinData.WithPackage = "無";
             StorageBinData.Purpose = string.Empty;
