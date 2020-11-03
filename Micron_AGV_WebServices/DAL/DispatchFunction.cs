@@ -26,7 +26,7 @@ namespace Micron_AGV_WebService.DAL
         /// </summary>
         /// <param name="TaskID"></param>
         /// <returns></returns>
-        private void AddTask(string TransferTask)
+        public void AddTask(string TransferTask)
         {   
             //新增任務
             TaskType Task = _db.TaskTypes.Where(x => x.TransferTask == TransferTask).FirstOrDefault();
@@ -304,7 +304,7 @@ namespace Micron_AGV_WebService.DAL
             }
             else
             { 
-                //2.當碼頭有進貨&CPU拆箱有空&派車紀錄沒有前往CPU拆箱口不然就送暫存區
+                //2當碼頭有進貨&CPU拆箱有空&派車紀錄沒有前往CPU拆箱口不然就送暫存區
                 TerminalStatus = null;
                 StagingStatus = null;
 
@@ -361,7 +361,7 @@ namespace Micron_AGV_WebService.DAL
                 IQueryable<DispatchRecord> DispatchStatus = DispatchRecord.Where(x => x.Storage == "CPU裝箱口");
                 
                 //3.3CPU拆箱口有沒有空(這段要等QQ)
-                
+
                 //如果有派車去拆箱口or拆箱口沒空
                 if (!DispatchStatus.Any() && 1 == 1)
                 {
@@ -371,7 +371,7 @@ namespace Micron_AGV_WebService.DAL
             }
         }
 
-        public string Index(string AGVID, string RFID)
+        public string MissionComplete(string AGVID, string RFID)
         {
             //查詢此車的狀態
             CarStatus Car = _db.CarStatuss.Where(x => x.AGVID == AGVID).FirstOrDefault();
@@ -427,7 +427,7 @@ namespace Micron_AGV_WebService.DAL
                     _db.SaveChanges();
 
                     // Stored Procedure
-                    using (SqlConnection Conn = new SqlConnection(WebConfigurationManager.ConnectionStrings["AGV_Test"].ConnectionString))
+                    using (SqlConnection Conn = new SqlConnection(WebConfigurationManager.ConnectionStrings["Micron_AGV_DB"].ConnectionString))
                     {
                         // 準備參數
                         var parameters = new DynamicParameters();

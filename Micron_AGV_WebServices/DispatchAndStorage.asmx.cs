@@ -34,9 +34,15 @@ namespace Micron_AGV_WebServices
         }
 
         [WebMethod]
-        public string Dispatch_Index(string AGVID, string RFID)
+        public void Dispatch_AddTask(string TransferTask)
         {
-            return DispatchFunc.Index(AGVID, RFID);
+            DispatchFunc.AddTask(TransferTask);
+        }
+
+        [WebMethod]
+        public string Dispatch_MissionComplete(string AGVID, string RFID)
+        {
+            return DispatchFunc.MissionComplete(AGVID, RFID);
         }
     }
 }
