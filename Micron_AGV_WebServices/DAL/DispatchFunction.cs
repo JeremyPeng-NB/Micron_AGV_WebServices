@@ -371,7 +371,7 @@ namespace Micron_AGV_WebService.DAL
             }
         }
 
-        public string MissionComplete(string AGVID, string RFID)
+        public void MissionComplete(string AGVID, string RFID)
         {
             //查詢此車的狀態
             CarStatus Car = _db.CarStatuss.Where(x => x.AGVID == AGVID).FirstOrDefault();
@@ -461,8 +461,6 @@ namespace Micron_AGV_WebService.DAL
                 }
                 _db.SaveChanges();
             }
-
-            return "Y";
         }
     }
 }
