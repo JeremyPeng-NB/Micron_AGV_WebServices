@@ -17,9 +17,14 @@ namespace Micron_AGV_WebServices
     // [System.Web.Script.Services.ScriptService]
     public class DispatchAndStorage : System.Web.Services.WebService
     {
-
         ManagemetFunction ManagementFunc = new ManagemetFunction();
         DispatchFunction DispatchFunc = new DispatchFunction();
+
+        [WebMethod]
+        public string Purchase_Complete_HaveRFID(DateTime PurchaseTime, string PurchaseStorageBin, string PurchaseStatus)
+        {
+            return ManagementFunc.Purchase_Complete_HaveRFID(PurchaseTime, PurchaseStorageBin, PurchaseStatus);
+        }
 
         [WebMethod]
         public string[] Purchase_Complete_NoRFID(DateTime PurchaseTime, string PurchaseStorageBin, string PurchaseStatus)
