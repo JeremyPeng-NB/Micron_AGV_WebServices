@@ -53,39 +53,56 @@ namespace Micron_AGV_WebService.DAL
             StorageBinData.UpDataTime = ShipmentTime;
             StorageBinData.AGVID = string.Empty;
         }
-
-        public string Purchase_Complete_HaveRFID(DateTime PurchaseTime, string PurchaseStorageBin, string PurchaseStatus)
+        
+        public string[] Purchase_Complete_HaveRFID(DateTime PurchaseTime, string PurchaseStorageBin, string PurchaseStatus, string RFID)
         {
-            //var StorageBinData = _db.ShelfManagements.Where(x => x.Storage == PurchaseStorageBin).FirstOrDefault();
+            string[] ResponseStr = { "Y", "正常" };
 
-            //// 是碼頭儲位
-            //if (StorageBinData.Status.Contains("碼頭"))
-            //{ 
-            //    // 回傳RFID
-            //}
-            //// 不是碼頭儲位
-            //else
-            //{
-            //    if (!string.IsNullOrEmpty(StorageBinData.RFID) && !string.IsNullOrWhiteSpace(StorageBinData.RFID) && !PurchaseStatus.Contains("failure"))
-            //    {
+            var StorageBinData = _db.ShelfManagements.Where(x => x.Storage == PurchaseStorageBin).FirstOrDefault();
 
-            //    }
-            //    else
-            //    {
-            //        UpdateStatusAndLog(StorageBinData, PurchaseStorageBin, PurchaseTime);
+            // (儲位管理) RFID搜尋儲位
+            var RFIDIsOrder = _db.ShelfManagements.Where(x => x.RFID == RFID).Any();
 
-            //        if (PurchaseStatus.Contains("failure"))
-            //        {
+            // RFID是否符合規格
+            var RFIDIsMatch = true;
 
-            //            RecordErrorLog(PurchaseTime, PurchaseStorageBin, "放貨異常", "Purchase_Complete_HaveRFID");
-            //        }
-            //        else
-            //        {
-            //            RecordErrorLog(PurchaseTime, PurchaseStorageBin, "人為偷放", "Purchase_Complete_HaveRFID");
-            //        }
-            //    }
-            //}
-            return "Y";
+            // 是
+            if (RFIDIsMatch)
+            {
+                if (!PurchaseStatus.Contains("failure"))
+                {
+                    // 正常
+                    // 否
+                    if (!RFIDIsOrder)
+                    {
+                        StorageBinData.RFID = RFID;
+                        StorageBinData.Purpose = "進貨";
+                    }
+                    InsertPackageLog(StorageBinData, PurchaseStorageBin, PurchaseTime);
+                    ResponseStr[1] = StorageBinData.AGVID;
+                }
+                else
+                {
+                    // 異常
+                    // (儲位管理) 修改儲位狀態為異常 + 異常Log
+                    UpdatePackageErrorStatus(StorageBinData, PurchaseStorageBin, PurchaseTime);
+                    RecordErrorLog(PurchaseTime, PurchaseStorageBin, "放貨異常", "Purchase_Complete_HaveRFID");
+                    ResponseStr[0] = "X";
+                    ResponseStr[0] = "放貨異常";
+                }
+            }
+            // 否
+            else
+            {
+                // (儲位管理) 修改儲位狀態為異常 + 異常Log
+                UpdatePackageErrorStatus(StorageBinData, PurchaseStorageBin, PurchaseTime);
+                RecordErrorLog(PurchaseTime, PurchaseStorageBin, "RFID不符合規格", "Purchase_Complete_HaveRFID");
+                ResponseStr[0] = "X";
+                ResponseStr[0] = "RFID不符合規格";
+            }
+
+            _db.SaveChanges();
+            return ResponseStr;
         }
 
         /// <summary>
@@ -107,8 +124,6 @@ namespace Micron_AGV_WebService.DAL
                 // 取得儲位上的RFID
                 if (!string.IsNullOrEmpty(StorageBinData.RFID) && !string.IsNullOrWhiteSpace(StorageBinData.RFID))
                 {
-                    ResponseStr[1] = StorageBinData.AGVID;
-
                     // 放貨狀態 == 正常
                     if (!PurchaseStatus.Contains("failure"))
                     {
@@ -122,13 +137,15 @@ namespace Micron_AGV_WebService.DAL
                         ResponseStr[0] = "X";
                         UpdatePackageErrorStatus(StorageBinData, PurchaseStorageBin, PurchaseTime);
                         RecordErrorLog(PurchaseTime, PurchaseStorageBin, "放貨異常","Purchase_Complete_NoRFID");
-                    }                  
+                    }
+
+                    ResponseStr[1] = StorageBinData.AGVID;
                 }
                 // 沒收到RFID (人偷放的!)
                 else
                 {
                     ResponseStr[0] = "X";
-                    ResponseStr[1] = "異常";
+                    ResponseStr[1] = "人為偷放";
                     UpdatePackageErrorStatus(StorageBinData, PurchaseStorageBin, PurchaseTime);
                     RecordErrorLog(PurchaseTime, PurchaseStorageBin, "人為偷放", "Purchase_Complete_NoRFID");
                 }
