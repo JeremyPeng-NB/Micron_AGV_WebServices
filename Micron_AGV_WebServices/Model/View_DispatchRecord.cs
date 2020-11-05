@@ -14,35 +14,31 @@ namespace Micron_AGV_WebServices.Model
         public int ID { get; set; }
 
         [Key]
-        [Column(Order = 1)]
+        [Column(Order = 8)]
         public Guid TaskListID { get; set; }
 
         [Key]
-        [Column(Order = 2)]
+        [Column(Order = 1)]
         public string AGVID { get; set; }
 
-        [Key]
-        [Column(Order = 3)]
-        [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public int TaskID { get; set; }
+
 
         [Key]
-        [Column(Order = 4)]
+        [Column(Order = 7)]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public int ActionID { get; set; }
-
+        public string Action { get; set; }
+        [Column(Order = 2)]
         public string RFID { get; set; }
-
+        [Column(Order = 3)]
         public string Storage { get; set; }
-
+        [Column(Order = 4)]
         public DateTime? StartTime { get; set; }
-
+        [Column(Order = 5)]
         public DateTime? EndTime { get; set; }
 
         [Key]
-        [Column(Order = 5)]
+        [Column(Order = 6)]
         public string TaskStatus { get; set; }
 
-        public string Destination { get; set; }
     }
 }

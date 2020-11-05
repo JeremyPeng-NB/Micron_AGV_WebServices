@@ -53,9 +53,11 @@ namespace Micron_AGV_WebService.DAL
             }
             //如果有車
             else
-            {   
+            {
                 //任務狀態為執行中
                 AddTask.TaskAcceptance = "執行中";
+                //任務開始時間
+                AddTask.StartTime = DateTime.Now;
 
                 //修改車輛狀態 + 執行任務ID
                 Car.Status = "任務中";
@@ -396,16 +398,19 @@ namespace Micron_AGV_WebService.DAL
                     var NextAction = TaskTotal.Where(x => x.ActionID == DispatchRecord.ActionID + 1).FirstOrDefault();
                     NextAction.StartTime = DateTime.Now;
                     NextAction.TaskStatus = "執行中";
+                    //如果有回傳RFID將派車紀錄填上RFID
                     if (!string.IsNullOrWhiteSpace(RFID))
                     {
                         NextAction.RFID = RFID;
+                        //新增貨物紀錄取貨完成RFID&AGVID
                     }
 
-                    //需要儲位資料的時候應該去儲位管理搜尋...待修改
+                   //如果下一任務有儲位&RFID就修改儲位狀態
                     if (!string.IsNullOrWhiteSpace(NextAction.Storage) && !string.IsNullOrWhiteSpace(RFID))
                     {   
-                        //修改儲位狀態
+                        //查詢儲位然填入RFID及AGVID
                         StorageEdit(NextAction.Storage, RFID, "", "", "", Car.AGVID);
+                        //新增貨物紀錄到達目的NextAction.Storage&時間&AGVID
 
                     }
 
@@ -446,6 +451,7 @@ namespace Micron_AGV_WebService.DAL
 
                         TaskList NewTask = _db.TaskLists.Where(x => x.TaskListID == WaitingTask.TaskListID).FirstOrDefault();
                         NewTask.TaskAcceptance = "執行中";
+                        NewTask.StartTime = DateTime.Now;
 
                         Car.Status = "任務中";
                         Car.TaskListID = WaitingTask.TaskListID;

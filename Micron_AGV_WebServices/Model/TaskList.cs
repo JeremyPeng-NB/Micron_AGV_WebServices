@@ -18,7 +18,9 @@ namespace Micron_AGV_WebServices.Model
         public string TaskAcceptance { get; set; }
 
         public DateTime AcceptanceTime { get; set; }
-
+        [Key]
+        [Column(Order = 4)]
+        public DateTime StartTime { get; set; }
         public DateTime? EndTime { get; set; }
     }
 }

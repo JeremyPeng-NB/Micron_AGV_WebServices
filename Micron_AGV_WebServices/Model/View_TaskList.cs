@@ -16,33 +16,38 @@ namespace Micron_AGV_WebServices.Model
         [Column(Order = 1)]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int TaskID { get; set; }
-
         [Key]
         [Column(Order = 2)]
+        public string Task { get; set; }
+
+        [Key]
+        [Column(Order = 3)]
         [StringLength(50)]
         public string TaskAcceptance { get; set; }
 
         [Key]
-        [Column(Order = 3)]
-        public DateTime AcceptanceTime { get; set; }
-
-        public DateTime? EndTime { get; set; }
-
-        [Key]
         [Column(Order = 4)]
-        public string Task { get; set; }
-
+        public DateTime AcceptanceTime { get; set; }
         [Key]
         [Column(Order = 5)]
+        public DateTime? StartTime { get; set; }
+        [Key]
+        [Column(Order = 6)]
+        public DateTime? EndTime { get; set; }
+
+
+
+        [Key]
+        [Column(Order = 7)]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int Priority { get; set; }
 
         [Key]
-        [Column(Order = 6)]
+        [Column(Order = 8)]
         public string Purpose { get; set; }
 
         [Key]
-        [Column(Order = 7)]
+        [Column(Order = 9)]
         public string Car { get; set; }
     }
 }
