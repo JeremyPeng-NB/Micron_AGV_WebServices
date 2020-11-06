@@ -372,101 +372,122 @@ namespace Micron_AGV_WebService.DAL
                 }
             }
         }
-
+        /// <summary>
+        /// 任務完成車傳資訊
+        /// </summary>
+        /// <param name="AGVID"></param>
+        /// <param name="RFID"></param>
         public void MissionComplete(string AGVID, string RFID)
-        {
-            //查詢此車的狀態
+        {//查詢此車的狀態
             CarStatus Car = _db.CarStatuss.Where(x => x.AGVID == AGVID).FirstOrDefault();
-            
-            //查詢派車資料之中，此車目前所執行的任務列表!
+            //查詢派車紀錄中此車目前所執行任務列表
             var TaskTotal = _db.DispatchRecords.Where(x => x.TaskListID == Car.TaskListID);
-            
             //查詢車輛ID執行中的任務
             var DispatchRecord = TaskTotal.Where(x => x.TaskStatus == "執行中").FirstOrDefault();
+            if (DispatchRecord != null) { 
 
-            //
-            if (DispatchRecord != null)
+            //修改當前任務完成時間&任務狀態
+            DispatchRecord.EndTime = DateTime.Now;
+
+            DispatchRecord.TaskStatus = "完成";
+
+
+            //如果不是最後一個任務
+            if (DispatchRecord.ActionID != TaskTotal.Count())
             {
-                //修改當前任務完成時間 + 任務狀態
-                DispatchRecord.EndTime = DateTime.Now;
-                DispatchRecord.TaskStatus = "完成";
 
-                //如果不是最後一個任務
-                if (DispatchRecord.ActionID != TaskTotal.Count())
+
+                //var Task2 = _db.DispatchRecords.Where(x => x.AGVID == AGVID & x.Action == Task.Action+1 & x.TaskListID == Car.TaskListID).FirstOrDefault();
+                //查詢下一任務
+                var NextAction = TaskTotal.Where(x => x.ActionID == DispatchRecord.ActionID + 1).FirstOrDefault();
+
+                //修改開始時間&狀態
+                NextAction.StartTime = DateTime.Now;
+
+                NextAction.TaskStatus = "執行中";
+
+                if (!string.IsNullOrWhiteSpace(RFID))
                 {
-                    //查詢下一任務 + 修改開始時間&狀態
-                    var NextAction = TaskTotal.Where(x => x.ActionID == DispatchRecord.ActionID + 1).FirstOrDefault();
-                    NextAction.StartTime = DateTime.Now;
-                    NextAction.TaskStatus = "執行中";
-                    //如果有回傳RFID將派車紀錄填上RFID
-                    if (!string.IsNullOrWhiteSpace(RFID))
-                    {
-                        NextAction.RFID = RFID;
-                        //新增貨物紀錄取貨完成RFID&AGVID
-                    }
-
-                   //如果下一任務有儲位&RFID就修改儲位狀態
-                    if (!string.IsNullOrWhiteSpace(NextAction.Storage) && !string.IsNullOrWhiteSpace(RFID))
-                    {   
-                        //查詢儲位然填入RFID及AGVID
-                        StorageEdit(NextAction.Storage, RFID, "", "", "", Car.AGVID);
-                        //新增貨物紀錄到達目的NextAction.Storage&時間&AGVID
-
-                    }
-
-                    //還少一個實際上的派車動作........
+                    NextAction.RFID = RFID;
+                    InsertPackageLog(RFID, "", AGVID, "取貨成功");
                 }
-                //最後一個動作
-                else
-                {
-                    TaskList TaskCompleted = _db.TaskLists.Where(x => x.TaskListID == Car.TaskListID).FirstOrDefault();
 
-                    TaskCompleted.TaskAcceptance = "任務完成";
-                    TaskCompleted.EndTime = DateTime.Now;
+                
+                if (!string.IsNullOrWhiteSpace(NextAction.Storage) && !string.IsNullOrWhiteSpace(RFID))
+                {   //修改儲位狀態
 
+                    StorageEdit(NextAction.Storage, RFID, "", "", "", Car.AGVID);
+                        InsertPackageLog(RFID, RFID, AGVID, "抵達"+NextAction.Storage);
+
+                    }
+                //還少一個實際派車動作........
+
+            }
+            //最後一個動作
+            else
+            {
+                TaskList TaskCompleted = _db.TaskLists.Where(x => x.TaskListID == Car.TaskListID).FirstOrDefault();
+
+                TaskCompleted.TaskAcceptance = "任務完成";
+
+                TaskCompleted.EndTime = DateTime.Now;
+                    _db.SaveChanges();
                     var TaskListID = Car.TaskListID;
 
-                    Car.Status = "待機中";
-                    Car.TaskListID = null;
+                Car.Status = "待機中";
 
-                    _db.SaveChanges();
+                Car.TaskListID = null;
 
-                    // Stored Procedure
-                    using (SqlConnection Conn = new SqlConnection(WebConfigurationManager.ConnectionStrings["Micron_AGV_DB"].ConnectionString))
-                    {
-                        // 準備參數
-                        var parameters = new DynamicParameters();
-                        parameters.Add("@TasklistID", TaskListID, DbType.Guid, ParameterDirection.Input);
-                        Conn.Execute("SP_DispatchHistory", parameters, commandType: CommandType.StoredProcedure);
-                        Conn.Execute("SP_TaskHistory", parameters, commandType: CommandType.StoredProcedure);
-                    }
+                
+                // Stored Procedure
+                //using (SqlConnection Conn = new SqlConnection(WebConfigurationManager.ConnectionStrings["Micron_AGV_DB"].ConnectionString))
+                //{
+                //    // 準備參數
+                //    var parameters = new DynamicParameters();
+                //    parameters.Add("@TasklistID", TaskListID, DbType.Guid, ParameterDirection.Input);
+                //    Conn.Execute("SP_DispatchHistory", parameters, commandType: CommandType.StoredProcedure);
+                //    Conn.Execute("SP_TaskHistory", parameters, commandType: CommandType.StoredProcedure);
+                //}
 
-                    var WaitingTask = _db.View_TaskLists.Where(x => x.Car == Car.CarType & x.TaskAcceptance == "等待中").OrderBy(x => new { x.Priority, x.AcceptanceTime }).FirstOrDefault();
 
-                    //有待處理任務的時候....
-                    if (WaitingTask != null)
-                    {
-                        //新增任務
-                        AddDispatch(WaitingTask.TaskID.ToString(), WaitingTask.TaskListID, Car);
+                var WaitingTask = _db.View_TaskLists.Where(x => x.Car == Car.CarType && x.TaskAcceptance == "等待中").OrderBy(x => new { x.Priority, x.AcceptanceTime }).FirstOrDefault();
+                //有待處理任務的時候....
+                if (WaitingTask != null)
+                { //新增任務
+                    AddDispatch(WaitingTask.TaskID.ToString(), WaitingTask.TaskListID, Car);
 
-                        TaskList NewTask = _db.TaskLists.Where(x => x.TaskListID == WaitingTask.TaskListID).FirstOrDefault();
-                        NewTask.TaskAcceptance = "執行中";
-                        NewTask.StartTime = DateTime.Now;
+                    TaskList NewTask = _db.TaskLists.Where(x => x.TaskListID == WaitingTask.TaskListID).FirstOrDefault();
 
-                        Car.Status = "任務中";
-                        Car.TaskListID = WaitingTask.TaskListID;
+                    NewTask.TaskAcceptance = "執行中";
 
-                    }
-                    else
-                    {   //0.主動執行任務
-                        //1.查詢碼頭有沒有空位&暫存區有東西要出貨
-                        //2.當碼頭有進貨&CPU拆箱有空&派車紀錄沒有前往CPU拆箱口不然就送暫存區
-                        //3當暫存區有進貨&CPU拆箱有空&派車紀錄沒有前往CPU拆箱口
-                        ActiveTask();
-                    }
+                    Car.Status = "任務中";
+
+                    Car.TaskListID = WaitingTask.TaskListID;
+
                 }
-                _db.SaveChanges();
+                else
+                {   //0.主動執行任務
+                    //1.查詢碼頭有沒有空位&暫存區有東西要出貨
+                    //2.當碼頭有進貨&CPU拆箱有空&派車紀錄沒有前往CPU拆箱口不然就送暫存區
+                    //3當暫存區有進貨&CPU拆箱有空&派車紀錄沒有前往CPU拆箱口
+
+                    ActiveTask();
+                }
+
+            }
+            _db.SaveChanges();
             }
         }
+
+
+        private void InsertPackageLog( string RFID,string StorageBin,string AGVID,string Purpose)
+        {
+            using (SqlConnection ConnStr = new SqlConnection(WebConfigurationManager.ConnectionStrings["Micron_AGV_DB"].ConnectionString))
+            {
+                string InsertLogStr = "INSERT INTO [PurchaseAndShipmentLog] ([RFID],[Storage],[UpdateTime],[Cargostatus],[AGVID]) VALUES (@RFID,@Storage,@UpdateTime,@Cargostatus,@AGVID)";
+                int AffectedRows = ConnStr.Execute(InsertLogStr, new { RFID = RFID, Storage = StorageBin, UpdateTime = DateTime.Now, Cargostatus = Purpose, AGVID = AGVID });
+            }
+        }
+        //以下別動
     }
 }

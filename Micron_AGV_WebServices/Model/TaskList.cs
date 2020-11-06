@@ -8,19 +8,17 @@ namespace Micron_AGV_WebServices.Model
 
     [Table("TaskList")]
     public partial class TaskList
-    {
+    {[Key]
         public Guid TaskListID { get; set; }
 
         public int TaskID { get; set; }
 
-        [Required]
-        [StringLength(50)]
+    
         public string TaskAcceptance { get; set; }
 
         public DateTime AcceptanceTime { get; set; }
-        [Key]
-        [Column(Order = 4)]
-        public DateTime StartTime { get; set; }
+     
+        public DateTime? StartTime { get; set; }
         public DateTime? EndTime { get; set; }
     }
 }

@@ -28,10 +28,10 @@ namespace Micron_AGV_WebServices.Model
         [Key]
         [Column(Order = 4)]
         public DateTime AcceptanceTime { get; set; }
-        [Key]
+   
         [Column(Order = 5)]
         public DateTime? StartTime { get; set; }
-        [Key]
+   
         [Column(Order = 6)]
         public DateTime? EndTime { get; set; }
 

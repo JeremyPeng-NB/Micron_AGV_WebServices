@@ -39,6 +39,7 @@ namespace Micron_AGV_WebServices.Model
         [Key]
         [Column(Order = 6)]
         public string TaskStatus { get; set; }
+    
 
     }
 }
