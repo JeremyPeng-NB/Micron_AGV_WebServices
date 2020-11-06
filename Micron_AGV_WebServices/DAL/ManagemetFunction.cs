@@ -30,12 +30,12 @@ namespace Micron_AGV_WebService.DAL
             _db.ErrorLogs.Add(InsertErrorLog);
         }
 
-        private void InsertPackageLog(ShelfManagement StorageBinData, string StorageBin, DateTime Time)
+        private void InsertPackageLog(ShelfManagement StorageBinData, string StorageBin, DateTime Time, string IsPepoleFetch)
         {
             using (SqlConnection ConnStr = new SqlConnection(WebConfigurationManager.ConnectionStrings["Micron_AGV_DB"].ConnectionString))
             {
-                string InsertLogStr = "INSERT INTO [PurchaseAndShipmentLog] ([RFID],[Storage],[UpdateTime],[Cargostatus],[AGVID]) VALUES (@RFID,@Storage,@UpdateTime,@Cargostatus,@AGVID)";
-                int AffectedRows = ConnStr.Execute(InsertLogStr, new { RFID = StorageBinData.RFID, Storage = StorageBin, UpdateTime = Time, Cargostatus = StorageBinData.Purpose, AGVID = StorageBinData.AGVID });
+                string InsertLogStr = "INSERT INTO [PurchaseAndShipmentLog] ([RFID],[Storage],[UpdateTime],[CargoStatus],[AGVID]) VALUES (@RFID,@Storage,@UpdateTime,@Cargostatus,@AGVID)";
+                int AffectedRows = ConnStr.Execute(InsertLogStr, new { RFID = StorageBinData.RFID, Storage = StorageBin, UpdateTime = Time, CargoStatus = StorageBinData.Purpose + IsPepoleFetch, AGVID = StorageBinData.AGVID });
             }
         }
 
@@ -45,19 +45,29 @@ namespace Micron_AGV_WebService.DAL
             StorageBinData.UpDataTime = PurchaseTime;
         }
 
-        private void UpdatePackageStatus(ShelfManagement StorageBinData, DateTime ShipmentTime)
+        private void UpdatePurchasePackageStatus(ShelfManagement StorageBinData, DateTime PurchaseTime)
         {
+            StorageBinData.Status = "正常";
+            StorageBinData.WithPackage = "有";
+            StorageBinData.UpDataTime = PurchaseTime;
+            StorageBinData.AGVID = string.Empty;
+        }
+
+        private void UpdateShipmentPackageStatus(ShelfManagement StorageBinData, DateTime ShipmentTime)
+        {
+            StorageBinData.RFID = string.Empty;
             StorageBinData.Status = "正常";
             StorageBinData.WithPackage = "無";
             StorageBinData.Purpose = string.Empty;
             StorageBinData.UpDataTime = ShipmentTime;
             StorageBinData.AGVID = string.Empty;
         }
-        
+
         public string[] Purchase_Complete_HaveRFID(DateTime PurchaseTime, string PurchaseStorageBin, string PurchaseStatus, string RFID)
         {
             string[] ResponseStr = { "Y", "正常" };
 
+            // (儲位管理)
             var StorageBinData = _db.ShelfManagements.Where(x => x.Storage == PurchaseStorageBin).FirstOrDefault();
 
             // (儲位管理) RFID搜尋儲位
@@ -76,9 +86,10 @@ namespace Micron_AGV_WebService.DAL
                     if (!RFIDIsOrder)
                     {
                         StorageBinData.RFID = RFID;
-                        StorageBinData.Purpose = "進貨";
+                        StorageBinData.Purpose = "進貨準備";
                     }
-                    InsertPackageLog(StorageBinData, PurchaseStorageBin, PurchaseTime);
+                    InsertPackageLog(StorageBinData, PurchaseStorageBin, PurchaseTime, "");
+                    UpdatePurchasePackageStatus(StorageBinData, PurchaseTime);
                     ResponseStr[1] = StorageBinData.AGVID;
                 }
                 else
@@ -118,7 +129,7 @@ namespace Micron_AGV_WebService.DAL
 
             try
             {
-                // (儲位管理)
+                // 儲位管理
                 var StorageBinData = _db.ShelfManagements.Where(x => x.Storage == PurchaseStorageBin).FirstOrDefault();
 
                 // 取得儲位上的RFID
@@ -127,27 +138,29 @@ namespace Micron_AGV_WebService.DAL
                     // 放貨狀態 == 正常
                     if (!PurchaseStatus.Contains("failure"))
                     {
-                        // 使用RFID + 儲位修改儲位狀態 & 新增Log & 叫車子離開
-                        UpdatePackageStatus(StorageBinData, PurchaseTime);
-                        InsertPackageLog(StorageBinData, PurchaseStorageBin, PurchaseTime);
+                        // 使用RFID + 儲位修改儲位狀態 & 新增Log 
+                        InsertPackageLog(StorageBinData, PurchaseStorageBin, PurchaseTime,"");
+                        UpdatePurchasePackageStatus(StorageBinData, PurchaseTime);                       
                     }
                     // 放貨狀態 == 異常 
                     else
                     {
+                        // 修改為異常狀態 & ErrorLog
                         ResponseStr[0] = "X";
                         UpdatePackageErrorStatus(StorageBinData, PurchaseStorageBin, PurchaseTime);
                         RecordErrorLog(PurchaseTime, PurchaseStorageBin, "放貨異常","Purchase_Complete_NoRFID");
                     }
 
+                    // 叫車子離開
                     ResponseStr[1] = StorageBinData.AGVID;
                 }
                 // 沒收到RFID (人偷放的!)
                 else
                 {
                     ResponseStr[0] = "X";
-                    ResponseStr[1] = "人為偷放";
+                    ResponseStr[1] = "人為放貨";
                     UpdatePackageErrorStatus(StorageBinData, PurchaseStorageBin, PurchaseTime);
-                    RecordErrorLog(PurchaseTime, PurchaseStorageBin, "人為偷放", "Purchase_Complete_NoRFID");
+                    RecordErrorLog(PurchaseTime, PurchaseStorageBin, "人為放貨", "Purchase_Complete_NoRFID");
                 }
             }
             catch (Exception ex)
@@ -162,7 +175,7 @@ namespace Micron_AGV_WebService.DAL
         }
 
         /// <summary>
-        /// 出貨完成
+        /// 取貨完成
         /// </summary>
         /// <param name="ShipmentTime"></param>
         /// <param name="ShipmentStorageBin"></param>
@@ -177,7 +190,10 @@ namespace Micron_AGV_WebService.DAL
                 var StorageBinData = _db.ShelfManagements.Where(x => x.Storage == ShipmentStorageBin).FirstOrDefault();
                
                 // RFID + 儲位查詢 (是否有派車)
-                var DispatchRecordCount = _db.DispatchRecords.Where(x => x.Storage == ShipmentStorageBin && x.RFID == StorageBinData.RFID).Count();
+                var IsDispatchRecord = _db.DispatchRecords.Where(x => x.Storage == ShipmentStorageBin && x.RFID == StorageBinData.RFID).Any();
+
+                // 是否人為取貨
+                var IsPeopleFetch = string.Empty;
 
                 // 取得儲位上的RFID
                 if (!string.IsNullOrEmpty(StorageBinData.RFID) && !string.IsNullOrWhiteSpace(StorageBinData.RFID))
@@ -186,11 +202,12 @@ namespace Micron_AGV_WebService.DAL
                     if (StorageBinData.Area.Contains("暫存區"))
                     {
                         // 是否有派車
-                        if (DispatchRecordCount <= 0)
+                        if (!IsDispatchRecord)
                         {
                             ResponseStr[0] = "X";
-                            ResponseStr[1] = "異常";
-                            RecordErrorLog(ShipmentTime, ShipmentStorageBin, "找不到派車資料", "Shipment_Complete");
+                            ResponseStr[1] = "取貨異常";
+                            RecordErrorLog(ShipmentTime, ShipmentStorageBin, "找不到派車資料(暫存區貨物被人為拿取)", "Shipment_Complete");
+                            IsPeopleFetch = "(人為拿取)";
                         }
                     }
                     // 碼頭
@@ -204,8 +221,8 @@ namespace Micron_AGV_WebService.DAL
                     }
                 }
                 // 修改貨物儲位狀態 + 新增貨物Log
-                UpdatePackageStatus(StorageBinData, ShipmentTime);
-                InsertPackageLog(StorageBinData, ShipmentStorageBin, ShipmentTime);
+                InsertPackageLog(StorageBinData, ShipmentStorageBin, ShipmentTime, IsPeopleFetch);
+                UpdateShipmentPackageStatus(StorageBinData, ShipmentTime);
             }
             catch (Exception ex)
             {

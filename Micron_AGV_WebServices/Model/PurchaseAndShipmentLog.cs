@@ -23,7 +23,7 @@ namespace Micron_AGV_WebServices.Model
 
         [Key]
         [Column(Order = 3)]
-        public string Cargostatus { get; set; }
+        public string CargoStatus { get; set; }
 
         public string AGVID { get; set; }
     }
