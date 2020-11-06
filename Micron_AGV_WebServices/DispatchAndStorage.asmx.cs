@@ -21,9 +21,9 @@ namespace Micron_AGV_WebServices
         DispatchFunction DispatchFunc = new DispatchFunction();
 
         [WebMethod]
-        public string Purchase_Complete_HaveRFID(DateTime PurchaseTime, string PurchaseStorageBin, string PurchaseStatus)
+        public string[] Purchase_Complete_HaveRFID(DateTime PurchaseTime, string PurchaseStorageBin, string PurchaseStatus, string RFID)
         {
-            return ManagementFunc.Purchase_Complete_HaveRFID(PurchaseTime, PurchaseStorageBin, PurchaseStatus);
+            return ManagementFunc.Purchase_Complete_HaveRFID(PurchaseTime, PurchaseStorageBin, PurchaseStatus, RFID);
         }
 
         [WebMethod]
