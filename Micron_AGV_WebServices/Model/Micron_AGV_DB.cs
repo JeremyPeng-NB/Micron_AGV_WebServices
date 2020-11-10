@@ -20,6 +20,7 @@ namespace Micron_AGV_WebServices.Model
         public virtual DbSet<ErrorLog> ErrorLogs { get; set; }
         public virtual DbSet<PurchaseAndShipmentLog> PurchaseAndShipmentLogs { get; set; }
         public virtual DbSet<ShelfManagement> ShelfManagements { get; set; }
+        public virtual DbSet<ShelfManagementTEST> ShelfManagementTESTs { get; set; }
         public virtual DbSet<TaskHistory> TaskHistorys { get; set; }
         public virtual DbSet<TaskProcess> TaskProcesss { get; set; }
         public virtual DbSet<View_DispatchRecord> View_DispatchRecords { get; set; }
