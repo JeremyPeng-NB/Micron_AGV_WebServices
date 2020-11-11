@@ -106,6 +106,7 @@
     <Compile Include="Model\Micron_AGV_DB.cs" />
     <Compile Include="Model\PurchaseAndShipmentLog.cs" />
     <Compile Include="Model\ShelfManagement.cs" />
+    <Compile Include="Model\ShelfManagementTEST.cs" />
     <Compile Include="Model\TaskHistory.cs" />
     <Compile Include="Model\TaskList.cs" />
     <Compile Include="Model\TaskProcess.cs" />
