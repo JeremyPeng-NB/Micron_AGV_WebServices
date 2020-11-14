@@ -8,7 +8,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Configuration;
 
-namespace Micron_AGV_WebService.DAL
+namespace Micron_AGV_WebServices.DAL
 {
     public class DispatchFunction
     {

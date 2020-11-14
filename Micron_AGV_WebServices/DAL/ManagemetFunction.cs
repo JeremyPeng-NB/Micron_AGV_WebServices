@@ -7,7 +7,7 @@ using System.Web.Configuration;
 using Dapper;
 using Micron_AGV_WebServices.Model;
 
-namespace Micron_AGV_WebService.DAL
+namespace Micron_AGV_WebServices.DAL
 {
     public class ManagemetFunction
     {
