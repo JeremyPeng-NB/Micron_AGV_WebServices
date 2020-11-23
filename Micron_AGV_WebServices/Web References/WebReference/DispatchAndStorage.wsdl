@@ -1,0 +1,655 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://tempuri.org/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://tempuri.org/">
+      <s:element name="Purchase_Complete_HaveRFID">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="PurchaseTime" type="s:dateTime" />
+            <s:element minOccurs="0" maxOccurs="1" name="PurchaseStorageBin" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="PurchaseStatus" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="RFID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Purchase_Complete_HaveRFIDResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Purchase_Complete_HaveRFIDResult" type="tns:ArrayOfString" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="ArrayOfString">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="string" nillable="true" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="Purchase_Complete_NoRFID">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="PurchaseTime" type="s:dateTime" />
+            <s:element minOccurs="0" maxOccurs="1" name="PurchaseStorageBin" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="PurchaseStatus" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Purchase_Complete_NoRFIDResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Purchase_Complete_NoRFIDResult" type="tns:ArrayOfString" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Shipment_Complete">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="ShipmentTime" type="s:dateTime" />
+            <s:element minOccurs="0" maxOccurs="1" name="ShipmentStorageBin" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Shipment_CompleteResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Shipment_CompleteResult" type="tns:ArrayOfString" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Dispatch_AddTask">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="TransferTask" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Dispatch_AddTaskResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="Dispatch_MissionComplete">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="AGVID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="RFID" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Dispatch_MissionCompleteResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="E84WinformTest">
+        <s:complexType />
+      </s:element>
+      <s:element name="E84WinformTestResponse">
+        <s:complexType />
+      </s:element>
+      <s:element name="AGVTestAPI">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Content" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AGVTestAPIResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="AGVTestAPIResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="Call_KMR">
+        <s:complexType />
+      </s:element>
+      <s:element name="Call_KMRResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="Call_KMRResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ArrayOfString" nillable="true" type="tns:ArrayOfString" />
+      <s:element name="string" nillable="true" type="s:string" />
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="Purchase_Complete_HaveRFIDSoapIn">
+    <wsdl:part name="parameters" element="tns:Purchase_Complete_HaveRFID" />
+  </wsdl:message>
+  <wsdl:message name="Purchase_Complete_HaveRFIDSoapOut">
+    <wsdl:part name="parameters" element="tns:Purchase_Complete_HaveRFIDResponse" />
+  </wsdl:message>
+  <wsdl:message name="Purchase_Complete_NoRFIDSoapIn">
+    <wsdl:part name="parameters" element="tns:Purchase_Complete_NoRFID" />
+  </wsdl:message>
+  <wsdl:message name="Purchase_Complete_NoRFIDSoapOut">
+    <wsdl:part name="parameters" element="tns:Purchase_Complete_NoRFIDResponse" />
+  </wsdl:message>
+  <wsdl:message name="Shipment_CompleteSoapIn">
+    <wsdl:part name="parameters" element="tns:Shipment_Complete" />
+  </wsdl:message>
+  <wsdl:message name="Shipment_CompleteSoapOut">
+    <wsdl:part name="parameters" element="tns:Shipment_CompleteResponse" />
+  </wsdl:message>
+  <wsdl:message name="Dispatch_AddTaskSoapIn">
+    <wsdl:part name="parameters" element="tns:Dispatch_AddTask" />
+  </wsdl:message>
+  <wsdl:message name="Dispatch_AddTaskSoapOut">
+    <wsdl:part name="parameters" element="tns:Dispatch_AddTaskResponse" />
+  </wsdl:message>
+  <wsdl:message name="Dispatch_MissionCompleteSoapIn">
+    <wsdl:part name="parameters" element="tns:Dispatch_MissionComplete" />
+  </wsdl:message>
+  <wsdl:message name="Dispatch_MissionCompleteSoapOut">
+    <wsdl:part name="parameters" element="tns:Dispatch_MissionCompleteResponse" />
+  </wsdl:message>
+  <wsdl:message name="E84WinformTestSoapIn">
+    <wsdl:part name="parameters" element="tns:E84WinformTest" />
+  </wsdl:message>
+  <wsdl:message name="E84WinformTestSoapOut">
+    <wsdl:part name="parameters" element="tns:E84WinformTestResponse" />
+  </wsdl:message>
+  <wsdl:message name="AGVTestAPISoapIn">
+    <wsdl:part name="parameters" element="tns:AGVTestAPI" />
+  </wsdl:message>
+  <wsdl:message name="AGVTestAPISoapOut">
+    <wsdl:part name="parameters" element="tns:AGVTestAPIResponse" />
+  </wsdl:message>
+  <wsdl:message name="Call_KMRSoapIn">
+    <wsdl:part name="parameters" element="tns:Call_KMR" />
+  </wsdl:message>
+  <wsdl:message name="Call_KMRSoapOut">
+    <wsdl:part name="parameters" element="tns:Call_KMRResponse" />
+  </wsdl:message>
+  <wsdl:message name="Purchase_Complete_HaveRFIDHttpGetIn">
+    <wsdl:part name="PurchaseTime" type="s:string" />
+    <wsdl:part name="PurchaseStorageBin" type="s:string" />
+    <wsdl:part name="PurchaseStatus" type="s:string" />
+    <wsdl:part name="RFID" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="Purchase_Complete_HaveRFIDHttpGetOut">
+    <wsdl:part name="Body" element="tns:ArrayOfString" />
+  </wsdl:message>
+  <wsdl:message name="Purchase_Complete_NoRFIDHttpGetIn">
+    <wsdl:part name="PurchaseTime" type="s:string" />
+    <wsdl:part name="PurchaseStorageBin" type="s:string" />
+    <wsdl:part name="PurchaseStatus" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="Purchase_Complete_NoRFIDHttpGetOut">
+    <wsdl:part name="Body" element="tns:ArrayOfString" />
+  </wsdl:message>
+  <wsdl:message name="Shipment_CompleteHttpGetIn">
+    <wsdl:part name="ShipmentTime" type="s:string" />
+    <wsdl:part name="ShipmentStorageBin" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="Shipment_CompleteHttpGetOut">
+    <wsdl:part name="Body" element="tns:ArrayOfString" />
+  </wsdl:message>
+  <wsdl:message name="Dispatch_AddTaskHttpGetIn">
+    <wsdl:part name="TransferTask" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="Dispatch_AddTaskHttpGetOut" />
+  <wsdl:message name="Dispatch_MissionCompleteHttpGetIn">
+    <wsdl:part name="AGVID" type="s:string" />
+    <wsdl:part name="RFID" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="Dispatch_MissionCompleteHttpGetOut" />
+  <wsdl:message name="E84WinformTestHttpGetIn" />
+  <wsdl:message name="E84WinformTestHttpGetOut" />
+  <wsdl:message name="AGVTestAPIHttpGetIn">
+    <wsdl:part name="Content" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="AGVTestAPIHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="Call_KMRHttpGetIn" />
+  <wsdl:message name="Call_KMRHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="Purchase_Complete_HaveRFIDHttpPostIn">
+    <wsdl:part name="PurchaseTime" type="s:string" />
+    <wsdl:part name="PurchaseStorageBin" type="s:string" />
+    <wsdl:part name="PurchaseStatus" type="s:string" />
+    <wsdl:part name="RFID" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="Purchase_Complete_HaveRFIDHttpPostOut">
+    <wsdl:part name="Body" element="tns:ArrayOfString" />
+  </wsdl:message>
+  <wsdl:message name="Purchase_Complete_NoRFIDHttpPostIn">
+    <wsdl:part name="PurchaseTime" type="s:string" />
+    <wsdl:part name="PurchaseStorageBin" type="s:string" />
+    <wsdl:part name="PurchaseStatus" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="Purchase_Complete_NoRFIDHttpPostOut">
+    <wsdl:part name="Body" element="tns:ArrayOfString" />
+  </wsdl:message>
+  <wsdl:message name="Shipment_CompleteHttpPostIn">
+    <wsdl:part name="ShipmentTime" type="s:string" />
+    <wsdl:part name="ShipmentStorageBin" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="Shipment_CompleteHttpPostOut">
+    <wsdl:part name="Body" element="tns:ArrayOfString" />
+  </wsdl:message>
+  <wsdl:message name="Dispatch_AddTaskHttpPostIn">
+    <wsdl:part name="TransferTask" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="Dispatch_AddTaskHttpPostOut" />
+  <wsdl:message name="Dispatch_MissionCompleteHttpPostIn">
+    <wsdl:part name="AGVID" type="s:string" />
+    <wsdl:part name="RFID" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="Dispatch_MissionCompleteHttpPostOut" />
+  <wsdl:message name="E84WinformTestHttpPostIn" />
+  <wsdl:message name="E84WinformTestHttpPostOut" />
+  <wsdl:message name="AGVTestAPIHttpPostIn">
+    <wsdl:part name="Content" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="AGVTestAPIHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="Call_KMRHttpPostIn" />
+  <wsdl:message name="Call_KMRHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:portType name="DispatchAndStorageSoap">
+    <wsdl:operation name="Purchase_Complete_HaveRFID">
+      <wsdl:input message="tns:Purchase_Complete_HaveRFIDSoapIn" />
+      <wsdl:output message="tns:Purchase_Complete_HaveRFIDSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Purchase_Complete_NoRFID">
+      <wsdl:input message="tns:Purchase_Complete_NoRFIDSoapIn" />
+      <wsdl:output message="tns:Purchase_Complete_NoRFIDSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Shipment_Complete">
+      <wsdl:input message="tns:Shipment_CompleteSoapIn" />
+      <wsdl:output message="tns:Shipment_CompleteSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Dispatch_AddTask">
+      <wsdl:input message="tns:Dispatch_AddTaskSoapIn" />
+      <wsdl:output message="tns:Dispatch_AddTaskSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Dispatch_MissionComplete">
+      <wsdl:input message="tns:Dispatch_MissionCompleteSoapIn" />
+      <wsdl:output message="tns:Dispatch_MissionCompleteSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="E84WinformTest">
+      <wsdl:input message="tns:E84WinformTestSoapIn" />
+      <wsdl:output message="tns:E84WinformTestSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AGVTestAPI">
+      <wsdl:input message="tns:AGVTestAPISoapIn" />
+      <wsdl:output message="tns:AGVTestAPISoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Call_KMR">
+      <wsdl:input message="tns:Call_KMRSoapIn" />
+      <wsdl:output message="tns:Call_KMRSoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:portType name="DispatchAndStorageHttpGet">
+    <wsdl:operation name="Purchase_Complete_HaveRFID">
+      <wsdl:input message="tns:Purchase_Complete_HaveRFIDHttpGetIn" />
+      <wsdl:output message="tns:Purchase_Complete_HaveRFIDHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Purchase_Complete_NoRFID">
+      <wsdl:input message="tns:Purchase_Complete_NoRFIDHttpGetIn" />
+      <wsdl:output message="tns:Purchase_Complete_NoRFIDHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Shipment_Complete">
+      <wsdl:input message="tns:Shipment_CompleteHttpGetIn" />
+      <wsdl:output message="tns:Shipment_CompleteHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Dispatch_AddTask">
+      <wsdl:input message="tns:Dispatch_AddTaskHttpGetIn" />
+      <wsdl:output message="tns:Dispatch_AddTaskHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Dispatch_MissionComplete">
+      <wsdl:input message="tns:Dispatch_MissionCompleteHttpGetIn" />
+      <wsdl:output message="tns:Dispatch_MissionCompleteHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="E84WinformTest">
+      <wsdl:input message="tns:E84WinformTestHttpGetIn" />
+      <wsdl:output message="tns:E84WinformTestHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AGVTestAPI">
+      <wsdl:input message="tns:AGVTestAPIHttpGetIn" />
+      <wsdl:output message="tns:AGVTestAPIHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Call_KMR">
+      <wsdl:input message="tns:Call_KMRHttpGetIn" />
+      <wsdl:output message="tns:Call_KMRHttpGetOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:portType name="DispatchAndStorageHttpPost">
+    <wsdl:operation name="Purchase_Complete_HaveRFID">
+      <wsdl:input message="tns:Purchase_Complete_HaveRFIDHttpPostIn" />
+      <wsdl:output message="tns:Purchase_Complete_HaveRFIDHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Purchase_Complete_NoRFID">
+      <wsdl:input message="tns:Purchase_Complete_NoRFIDHttpPostIn" />
+      <wsdl:output message="tns:Purchase_Complete_NoRFIDHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Shipment_Complete">
+      <wsdl:input message="tns:Shipment_CompleteHttpPostIn" />
+      <wsdl:output message="tns:Shipment_CompleteHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Dispatch_AddTask">
+      <wsdl:input message="tns:Dispatch_AddTaskHttpPostIn" />
+      <wsdl:output message="tns:Dispatch_AddTaskHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Dispatch_MissionComplete">
+      <wsdl:input message="tns:Dispatch_MissionCompleteHttpPostIn" />
+      <wsdl:output message="tns:Dispatch_MissionCompleteHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="E84WinformTest">
+      <wsdl:input message="tns:E84WinformTestHttpPostIn" />
+      <wsdl:output message="tns:E84WinformTestHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AGVTestAPI">
+      <wsdl:input message="tns:AGVTestAPIHttpPostIn" />
+      <wsdl:output message="tns:AGVTestAPIHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="Call_KMR">
+      <wsdl:input message="tns:Call_KMRHttpPostIn" />
+      <wsdl:output message="tns:Call_KMRHttpPostOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="DispatchAndStorageSoap" type="tns:DispatchAndStorageSoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="Purchase_Complete_HaveRFID">
+      <soap:operation soapAction="http://tempuri.org/Purchase_Complete_HaveRFID" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Purchase_Complete_NoRFID">
+      <soap:operation soapAction="http://tempuri.org/Purchase_Complete_NoRFID" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Shipment_Complete">
+      <soap:operation soapAction="http://tempuri.org/Shipment_Complete" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Dispatch_AddTask">
+      <soap:operation soapAction="http://tempuri.org/Dispatch_AddTask" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Dispatch_MissionComplete">
+      <soap:operation soapAction="http://tempuri.org/Dispatch_MissionComplete" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="E84WinformTest">
+      <soap:operation soapAction="http://tempuri.org/E84WinformTest" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AGVTestAPI">
+      <soap:operation soapAction="http://tempuri.org/AGVTestAPI" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Call_KMR">
+      <soap:operation soapAction="http://tempuri.org/Call_KMR" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="DispatchAndStorageSoap12" type="tns:DispatchAndStorageSoap">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="Purchase_Complete_HaveRFID">
+      <soap12:operation soapAction="http://tempuri.org/Purchase_Complete_HaveRFID" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Purchase_Complete_NoRFID">
+      <soap12:operation soapAction="http://tempuri.org/Purchase_Complete_NoRFID" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Shipment_Complete">
+      <soap12:operation soapAction="http://tempuri.org/Shipment_Complete" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Dispatch_AddTask">
+      <soap12:operation soapAction="http://tempuri.org/Dispatch_AddTask" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Dispatch_MissionComplete">
+      <soap12:operation soapAction="http://tempuri.org/Dispatch_MissionComplete" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="E84WinformTest">
+      <soap12:operation soapAction="http://tempuri.org/E84WinformTest" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AGVTestAPI">
+      <soap12:operation soapAction="http://tempuri.org/AGVTestAPI" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Call_KMR">
+      <soap12:operation soapAction="http://tempuri.org/Call_KMR" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="DispatchAndStorageHttpGet" type="tns:DispatchAndStorageHttpGet">
+    <http:binding verb="GET" />
+    <wsdl:operation name="Purchase_Complete_HaveRFID">
+      <http:operation location="/Purchase_Complete_HaveRFID" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Purchase_Complete_NoRFID">
+      <http:operation location="/Purchase_Complete_NoRFID" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Shipment_Complete">
+      <http:operation location="/Shipment_Complete" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Dispatch_AddTask">
+      <http:operation location="/Dispatch_AddTask" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output />
+    </wsdl:operation>
+    <wsdl:operation name="Dispatch_MissionComplete">
+      <http:operation location="/Dispatch_MissionComplete" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output />
+    </wsdl:operation>
+    <wsdl:operation name="E84WinformTest">
+      <http:operation location="/E84WinformTest" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output />
+    </wsdl:operation>
+    <wsdl:operation name="AGVTestAPI">
+      <http:operation location="/AGVTestAPI" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Call_KMR">
+      <http:operation location="/Call_KMR" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="DispatchAndStorageHttpPost" type="tns:DispatchAndStorageHttpPost">
+    <http:binding verb="POST" />
+    <wsdl:operation name="Purchase_Complete_HaveRFID">
+      <http:operation location="/Purchase_Complete_HaveRFID" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Purchase_Complete_NoRFID">
+      <http:operation location="/Purchase_Complete_NoRFID" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Shipment_Complete">
+      <http:operation location="/Shipment_Complete" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Dispatch_AddTask">
+      <http:operation location="/Dispatch_AddTask" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output />
+    </wsdl:operation>
+    <wsdl:operation name="Dispatch_MissionComplete">
+      <http:operation location="/Dispatch_MissionComplete" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output />
+    </wsdl:operation>
+    <wsdl:operation name="E84WinformTest">
+      <http:operation location="/E84WinformTest" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output />
+    </wsdl:operation>
+    <wsdl:operation name="AGVTestAPI">
+      <http:operation location="/AGVTestAPI" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Call_KMR">
+      <http:operation location="/Call_KMR" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="DispatchAndStorage">
+    <wsdl:port name="DispatchAndStorageSoap" binding="tns:DispatchAndStorageSoap">
+      <soap:address location="http://192.168.12.65:8181/DispatchAndStorage.asmx" />
+    </wsdl:port>
+    <wsdl:port name="DispatchAndStorageSoap12" binding="tns:DispatchAndStorageSoap12">
+      <soap12:address location="http://192.168.12.65:8181/DispatchAndStorage.asmx" />
+    </wsdl:port>
+    <wsdl:port name="DispatchAndStorageHttpGet" binding="tns:DispatchAndStorageHttpGet">
+      <http:address location="http://192.168.12.65:8181/DispatchAndStorage.asmx" />
+    </wsdl:port>
+    <wsdl:port name="DispatchAndStorageHttpPost" binding="tns:DispatchAndStorageHttpPost">
+      <http:address location="http://192.168.12.65:8181/DispatchAndStorage.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
