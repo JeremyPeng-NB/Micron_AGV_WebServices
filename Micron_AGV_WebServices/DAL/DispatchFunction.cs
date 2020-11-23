@@ -407,7 +407,7 @@ namespace Micron_AGV_WebServices.DAL
                         var NextAction = TaskTotal.Where(x => x.ActionID == DispatchRecord.ActionID + 1).FirstOrDefault();
 
                         //移動/取貨/放貨 組json To AGVServer 
-                        var jsonStr = CombineJsonStr(NextAction.ActionType);
+                        var jsonStr = CombineJsonStr(NextAction.ActionType,NextAction.AGVID);
                         ConnAPI.AddCarMission(jsonStr);
 
                         //修改開始時間&狀態
@@ -500,7 +500,7 @@ namespace Micron_AGV_WebServices.DAL
             }
         }
 
-        public string CombineJsonStr(string ActionType)
+        public string CombineJsonStr(string ActionType,string AGVID)
         {
             int ActionID = 0;
 
@@ -522,7 +522,7 @@ namespace Micron_AGV_WebServices.DAL
             CarMission CarMission = new CarMission()
             {
                 userId = 1,
-                executeAgv = "AGV-01",
+                executeAgv = AGVID,
                 orderType = 1,
                 priority = 0,
                 tasks = new Tasks()
