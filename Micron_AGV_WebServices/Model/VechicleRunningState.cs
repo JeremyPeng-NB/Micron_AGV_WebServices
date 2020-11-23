@@ -9,7 +9,7 @@ namespace Micron_AGV_WebServices.Model
     {
         public int code { get; set; }
         public string message { get; set; }
-        public Runningstatelist[] runningStateList { get; set; }
+        public Runningstatelist runningStateList { get; set; }
     }
 
     public class Runningstatelist
