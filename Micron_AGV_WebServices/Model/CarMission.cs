@@ -8,6 +8,7 @@ namespace Micron_AGV_WebServices.Model
     public class CarMission
     {
         public int userId { get; set; }
+        public string executeAgv { get; set; }
         public int orderType { get; set; }
         public int priority { get; set; }
         public Tasks tasks { get; set; }

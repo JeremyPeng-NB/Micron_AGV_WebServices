@@ -522,6 +522,7 @@ namespace Micron_AGV_WebServices.DAL
             CarMission CarMission = new CarMission()
             {
                 userId = 1,
+                executeAgv = "AGV-01",
                 orderType = 1,
                 priority = 0,
                 tasks = new Tasks()
