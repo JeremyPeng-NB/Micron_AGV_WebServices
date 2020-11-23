@@ -5,16 +5,19 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Web;
 
 namespace Micron_AGV_WebServices.DAL
 {
     public class ConnectAPI
     {
-        public AllVechicleRunningState APITest()
+        HttpWebRequest requestt;
+
+        public string AGVTestAPI()
         {
-            HttpWebRequest requestt = WebRequest.Create("http://192.168.12.65:1111/TestAPI") as HttpWebRequest;
-            AllVechicleRunningState VechicleRunningState;
+            requestt = WebRequest.Create("http://192.168.12.65:1111/AGVTestAPI") as HttpWebRequest;
+
             //string mapId = "1";
             //string sectionId = "1";
 
@@ -46,7 +49,8 @@ namespace Micron_AGV_WebServices.DAL
                 {
                     StreamReader sr = new StreamReader(response.GetResponseStream());
                     string resultt = sr.ReadToEnd();
-                    VechicleRunningState = JsonConvert.DeserializeObject<AllVechicleRunningState>(resultt);
+                    VechicleRunningState VechicleRunningState = JsonConvert.DeserializeObject<VechicleRunningState>(resultt);
+                    return "叫車成功!";
                 }
 
                 //using (WebResponse response = requestt.GetResponse())
@@ -54,13 +58,41 @@ namespace Micron_AGV_WebServices.DAL
                 //string resultt = "{'agvName':'127.0.0.6','entityId':1,'speed':30,'x':10,'y':20,'battery':90,'agvState':0,'enabled':1}";
                 //AllVechicleRunningState VechicleRunningState = JsonConvert.DeserializeObject<AllVechicleRunningState>(resultt);
                 //}
-
-                return VechicleRunningState;
             }
             else
             {
-                return null;
+                return "叫車失敗!";
             }
+        }
+
+        public string AddCarMission(string jsonStr)
+        {
+            requestt = WebRequest.Create("http://192.168.12.65:1111/AddCarMission") as HttpWebRequest;
+
+            if (requestt != null)
+            {
+                requestt.Method = "POST";
+                requestt.KeepAlive = true;
+                requestt.ContentType = "application/json";
+
+                byte[] bs = Encoding.UTF8.GetBytes(jsonStr);
+
+                using (Stream reqStream = requestt.GetRequestStream())
+                {
+                    reqStream.Write(bs, 0, bs.Length);
+                    reqStream.Flush();
+                }
+
+                using (WebResponse response = requestt.GetResponse())
+                {
+                    StreamReader sr = new StreamReader(response.GetResponseStream());
+                    string resultt = sr.ReadToEnd();
+                    ReturnCarMissionResult CarMissionResult = JsonConvert.DeserializeObject<ReturnCarMissionResult>(resultt);
+                    return CarMissionResult.message;
+                }
+            }
+
+            return "operation failed";
         }
     }
 }

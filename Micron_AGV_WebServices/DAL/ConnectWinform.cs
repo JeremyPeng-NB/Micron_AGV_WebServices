@@ -8,7 +8,7 @@ namespace Micron_AGV_WebServices.DAL
 {
     public class ConnectWinform
     {
-        public void WinformTest()
+        public void E84WinformTest()
         {
             string EXEPath = @"D:\自學\WindowsFormsApplication1\WindowsFormsApplication1\bin\Release";
             Process exe = new Process();
