@@ -64,9 +64,64 @@ namespace Micron_AGV_WebServices.DAL
         }
 
 
-        public void Purchase_Check()
+        public string NoticeNewStorageBin(string RFID)
         {
-            
+            string ResponseStr = "Y|";
+
+            try
+            {
+                // 確認收到RFID
+                if (!string.IsNullOrEmpty(RFID) && !string.IsNullOrWhiteSpace(RFID))
+                {
+                    // 找空儲位 
+                    var IsWithSpace = _db.ShelfManagementTESTs.Where(x => x.Status == "空");
+
+                    // 碼頭有位置
+                    if (IsWithSpace.Where(x => x.Area == "碼頭").Count() > 0)
+                    {
+                        // 排序之後丟第一筆資料出來
+                        var PierData = IsWithSpace.OrderBy(x => x.Storage).FirstOrDefault();
+
+                        // 修改儲位狀態 + RFID
+                        PierData.Status = "出貨";
+                        PierData.RFID = RFID;
+
+                        // 把儲位丟出去
+                        ResponseStr += PierData.Storage;
+                    }
+
+                    // 碼頭沒位置
+                    else
+                    {
+                        // 排序之後丟第一筆資料出來
+                        var TempAreaData = IsWithSpace.OrderBy(x => x.Storage).FirstOrDefault();
+
+                        // 如果有資料
+                        if (TempAreaData != null)
+                        {
+                            // 修改儲位狀態 + RFID
+                            TempAreaData.Status = "出貨";
+                            TempAreaData.RFID = RFID;
+
+                            // 把儲位丟出去
+                            ResponseStr += TempAreaData.Storage;
+                        }
+                        // 沒有資料
+                        else
+                        {
+                            ResponseStr = "X|沒有儲位";
+                        }
+                    }
+
+                    _db.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                ResponseStr = "X|" + ex.ToString();
+            }
+
+            return ResponseStr;
         }
 
         /// <summary>

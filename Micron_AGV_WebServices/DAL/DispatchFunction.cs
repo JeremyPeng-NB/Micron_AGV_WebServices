@@ -433,8 +433,9 @@ namespace Micron_AGV_WebServices.DAL
                         if (NextAction.ActionType == "放貨" && !(_db.ShelfManagementTESTs.Where(x => x.AGVID == NextAction.AGVID && x.Storage == NextAction.Storage && x.Status == "預定").Any()))
                         {
                             // 再找儲位
+                            var NewStorageBin = ManagementFunc.NoticeNewStorageBin(NextAction.RFID);
 
-                            // 叫車去下一個位置
+                            // 叫車去下一個位置(待續)
                         }
                         else
                         {
