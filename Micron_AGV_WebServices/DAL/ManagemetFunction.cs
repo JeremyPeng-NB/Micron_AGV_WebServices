@@ -74,16 +74,16 @@ namespace Micron_AGV_WebServices.DAL
                 if (!string.IsNullOrEmpty(RFID) && !string.IsNullOrWhiteSpace(RFID))
                 {
                     // 找空儲位 
-                    var IsWithSpace = _db.ShelfManagementTESTs.Where(x => x.Status == "空");
+                    var IsWithSpace = _db.ShelfManagementTESTs.Where(x => x.Status == "正常");
 
                     // 碼頭有位置
-                    if (IsWithSpace.Where(x => x.Area == "碼頭").Count() > 0)
+                    if (IsWithSpace.Where(x => x.Area == "碼頭").Any())
                     {
                         // 排序之後丟第一筆資料出來
                         var PierData = IsWithSpace.OrderBy(x => x.Storage).FirstOrDefault();
 
                         // 修改儲位狀態 + RFID
-                        PierData.Status = "出貨";
+                        PierData.Purpose = "出貨";
                         PierData.RFID = RFID;
 
                         // 把儲位丟出去
@@ -196,7 +196,7 @@ namespace Micron_AGV_WebServices.DAL
                 // (儲位管理) 修改儲位狀態為異常 + 異常Log
                 UpdatePackageErrorStatus(StorageBinData, PurchaseStorageBin, PurchaseTime);
                 RecordErrorLog(PurchaseTime, PurchaseStorageBin, "RFID不符合規格", "Purchase_Complete_HaveRFID");
-                ResponseStr[0] = "X";
+                ResponseStr[0] = "X"; 
                 ResponseStr[0] = "RFID不符合規格";
             }
 
