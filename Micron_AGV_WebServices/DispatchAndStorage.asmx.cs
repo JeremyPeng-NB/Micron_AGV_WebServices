@@ -78,9 +78,11 @@ namespace Micron_AGV_WebServices
             }
             else
             {
-                var jsonStr = DispatchFunc.CombineJsonStr(Content , "1"); //還沒做防呆!!!!! 
-
-                responseStr = ConnAPI.AddCarMission(jsonStr);
+                var jsonStr = DispatchFunc.CombineJsonStr(Content , "1");
+                if (!jsonStr.Contains("X"))
+                {
+                    responseStr = ConnAPI.AddCarMission(jsonStr);
+                }
                 return responseStr;
             }
         }

@@ -85,6 +85,16 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
+    <None Include="Properties\PublishProfiles\AGV_WebService_WebDeploy.pubxml" />
+    <None Include="Properties\PublishProfiles\WebService_WebDeploy.pubxml" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="Web References\WebReference\DispatchAndStorage.wsdl" />
+    <Content Include="Web References\WebReference\Reference.map">
+      <Generator>MSDiscoCodeGenerator</Generator>
+    </Content>
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -94,16 +104,21 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="DispatchAndStorage.asmx" />
+    <None Include="Web References\WebReference\DispatchAndStorage.disco" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DAL\ConnectAPI.cs" />
+    <Compile Include="DAL\ConnectWinform.cs" />
     <Compile Include="DAL\DispatchFunction.cs" />
     <Compile Include="DAL\ManagemetFunction.cs" />
     <Compile Include="DispatchAndStorage.asmx.cs">
       <DependentUpon>DispatchAndStorage.asmx</DependentUpon>
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Model\AllVechicleRunningState.cs" />
+    <Compile Include="Model\CarMission.cs" />
+    <Compile Include="Model\ReturnCarMissionResult.cs" />
+    <Compile Include="Model\VechicleRunningState.cs" />
     <Compile Include="Model\CarStatus.cs" />
     <Compile Include="Model\DispatchHistory.cs" />
     <Compile Include="Model\DispatchRecord.cs" />
@@ -120,6 +135,29 @@
     <Compile Include="Model\View_TaskList.cs" />
     <Compile Include="Model\View_TaskType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <WebReferences Include="Web References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <WebReferenceUrl Include="http://192.168.12.65:8181/DispatchAndStorage.asmx">
+      <UrlBehavior>Dynamic</UrlBehavior>
+      <RelPath>Web References\WebReference\</RelPath>
+      <UpdateFromURL>http://192.168.12.65:8181/DispatchAndStorage.asmx</UpdateFromURL>
+      <ServiceLocationURL>
+      </ServiceLocationURL>
+      <CachedDynamicPropName>
+      </CachedDynamicPropName>
+      <CachedAppSettingsObjectName>
+      </CachedAppSettingsObjectName>
+      <CachedSettingsPropName>
+      </CachedSettingsPropName>
+    </WebReferenceUrl>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

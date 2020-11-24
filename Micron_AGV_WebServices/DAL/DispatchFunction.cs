@@ -383,8 +383,14 @@ namespace Micron_AGV_WebServices.DAL
             //查詢此車的狀態
             CarStatus Car = _db.CarStatuss.Where(x => x.AGVID == AGVID).FirstOrDefault();
 
-            //New連結AGV的API
+            //連結AGV Server的WebAPI Function
             ConnectAPI ConnAPI = new ConnectAPI();
+
+            //放貨判斷
+            ManagemetFunction ManagementFunc = new ManagemetFunction();
+
+            //回應字串
+            string responseStr = "X";
 
             //AGV
             if (Car.CarType == "AGV")
@@ -406,10 +412,6 @@ namespace Micron_AGV_WebServices.DAL
                         //查詢下一任務
                         var NextAction = TaskTotal.Where(x => x.ActionID == DispatchRecord.ActionID + 1).FirstOrDefault();
 
-                        //移動/取貨/放貨 組json To AGVServer 
-                        var jsonStr = CombineJsonStr(NextAction.ActionType,NextAction.AGVID);
-                        ConnAPI.AddCarMission(jsonStr);
-
                         //修改開始時間&狀態
                         NextAction.StartTime = DateTime.Now;
                         NextAction.TaskStatus = "執行中";
@@ -427,7 +429,24 @@ namespace Micron_AGV_WebServices.DAL
                             InsertPackageLog(RFID, RFID, AGVID, "抵達" + NextAction.Storage);
                         }
 
-                        //還少一個真正派車動作........
+                        //放貨前檢查
+                        if (NextAction.ActionType == "放貨" && !(_db.ShelfManagementTESTs.Where(x => x.AGVID == NextAction.AGVID && x.Storage == NextAction.Storage && x.Status == "預定").Any()))
+                        {
+                            // 再找儲位
+
+                            // 叫車去下一個位置
+                        }
+                        else
+                        {
+                            //移動/取貨/可以放貨 組json
+                            var jsonStr = CombineJsonStr(NextAction.ActionType, NextAction.AGVID);
+
+                            if (!jsonStr.Contains("X"))
+                            {
+                                //Connect To AGVServer (WebAPI) 
+                                responseStr = ConnAPI.AddCarMission(jsonStr);
+                            }
+                        }
                     }
                     //最後一個動作
                     else
@@ -500,9 +519,10 @@ namespace Micron_AGV_WebServices.DAL
             }
         }
 
-        public string CombineJsonStr(string ActionType,string AGVID)
+        public string CombineJsonStr(string ActionType, string AGVID)
         {
             int ActionID = 0;
+            string json = "X";
 
             switch (ActionType)
             {
@@ -519,22 +539,24 @@ namespace Micron_AGV_WebServices.DAL
                     break;
             }
 
-            CarMission CarMission = new CarMission()
+            if (ActionID != 0 && !string.IsNullOrWhiteSpace(AGVID) && !string.IsNullOrEmpty(AGVID))
             {
-                userId = 1,
-                executeAgv = AGVID,
-                orderType = 1,
-                priority = 0,
-                tasks = new Tasks()
+                CarMission CarMission = new CarMission()
                 {
-                    seqNum = 1,
-                    targetEntity = 5,
-                    action = ActionID 
-                }
-            };
-
-            //轉成JSON格式
-            string json = JsonConvert.SerializeObject(CarMission);
+                    userId = 1,
+                    executeAgv = AGVID,
+                    orderType = 1,
+                    priority = 0,
+                    tasks = new Tasks()
+                    {
+                        seqNum = 1,
+                        targetEntity = 5,
+                        action = ActionID
+                    }
+                };
+                //轉成JSON格式
+                json = JsonConvert.SerializeObject(CarMission);
+            }
 
             //顯示
             //Response.Write(json);

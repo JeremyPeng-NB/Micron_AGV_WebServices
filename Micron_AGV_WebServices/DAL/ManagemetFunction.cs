@@ -63,6 +63,20 @@ namespace Micron_AGV_WebServices.DAL
             StorageBinData.AGVID = string.Empty;
         }
 
+
+        public void Purchase_Check()
+        {
+            
+        }
+
+        /// <summary>
+        /// 放貨完成 - 有RFID
+        /// </summary>
+        /// <param name="PurchaseTime"></param>
+        /// <param name="PurchaseStorageBin"></param>
+        /// <param name="PurchaseStatus"></param>
+        /// <param name="RFID"></param>
+        /// <returns></returns>
         public string[] Purchase_Complete_HaveRFID(DateTime PurchaseTime, string PurchaseStorageBin, string PurchaseStatus, string RFID)
         {
             string[] ResponseStr = { "Y", "正常" };
