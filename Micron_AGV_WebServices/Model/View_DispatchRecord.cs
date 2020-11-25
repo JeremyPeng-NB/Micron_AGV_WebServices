@@ -25,7 +25,6 @@ namespace Micron_AGV_WebServices.Model
 
         public DateTime? EndTime { get; set; }
 
-        [Key]
         [Column(Order = 2)]
         public string TaskStatus { get; set; }
 

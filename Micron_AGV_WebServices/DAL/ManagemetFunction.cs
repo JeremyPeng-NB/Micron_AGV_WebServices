@@ -20,14 +20,14 @@ namespace Micron_AGV_WebServices.DAL
             ((IDisposable)_db).Dispose();
         }
 
-        private void RecordErrorLog(DateTime Time, string StorageBin, string Message, string FunctionName)
+        private void RecordShelfErrorLog(DateTime Time, string StorageBin, string Message, string FunctionName)
         {
-            var InsertErrorLog = new ErrorLog();
+            var InsertErrorLog = new ShelfErrorLog();
             InsertErrorLog.Time = Time;
             InsertErrorLog.StorageBin = StorageBin;
             InsertErrorLog.Message = Message;
             InsertErrorLog.FunctionName = FunctionName;
-            _db.ErrorLogs.Add(InsertErrorLog);
+            _db.ShelfErrorLogs.Add(InsertErrorLog);
         }
 
         private void InsertPackageLog(ShelfManagementTEST StorageBinData, string StorageBin, DateTime Time, string IsPepoleFetch)
@@ -63,7 +63,11 @@ namespace Micron_AGV_WebServices.DAL
             StorageBinData.AGVID = string.Empty;
         }
 
-
+        /// <summary>
+        /// 找尋新儲位
+        /// </summary>
+        /// <param name="RFID"></param>
+        /// <returns></returns>
         public string NoticeNewStorageBin(string RFID)
         {
             string ResponseStr = "Y|";
@@ -185,7 +189,7 @@ namespace Micron_AGV_WebServices.DAL
                     // 異常
                     // (儲位管理) 修改儲位狀態為異常 + 異常Log
                     UpdatePackageErrorStatus(StorageBinData, PurchaseStorageBin, PurchaseTime);
-                    RecordErrorLog(PurchaseTime, PurchaseStorageBin, "放貨異常", "Purchase_Complete_HaveRFID");
+                    RecordShelfErrorLog(PurchaseTime, PurchaseStorageBin, "放貨異常", "Purchase_Complete_HaveRFID");
                     ResponseStr[0] = "X";
                     ResponseStr[0] = "放貨異常";
                 }
@@ -195,7 +199,7 @@ namespace Micron_AGV_WebServices.DAL
             {
                 // (儲位管理) 修改儲位狀態為異常 + 異常Log
                 UpdatePackageErrorStatus(StorageBinData, PurchaseStorageBin, PurchaseTime);
-                RecordErrorLog(PurchaseTime, PurchaseStorageBin, "RFID不符合規格", "Purchase_Complete_HaveRFID");
+                RecordShelfErrorLog(PurchaseTime, PurchaseStorageBin, "RFID不符合規格", "Purchase_Complete_HaveRFID");
                 ResponseStr[0] = "X"; 
                 ResponseStr[0] = "RFID不符合規格";
             }
@@ -237,7 +241,7 @@ namespace Micron_AGV_WebServices.DAL
                         // 修改為異常狀態 & ErrorLog
                         ResponseStr[0] = "X";
                         UpdatePackageErrorStatus(StorageBinData, PurchaseStorageBin, PurchaseTime);
-                        RecordErrorLog(PurchaseTime, PurchaseStorageBin, "放貨異常","Purchase_Complete_NoRFID");
+                        RecordShelfErrorLog(PurchaseTime, PurchaseStorageBin, "放貨異常","Purchase_Complete_NoRFID");
                     }
 
                     // 叫車子離開
@@ -249,14 +253,14 @@ namespace Micron_AGV_WebServices.DAL
                     ResponseStr[0] = "X";
                     ResponseStr[1] = "人為放貨";
                     UpdatePackageErrorStatus(StorageBinData, PurchaseStorageBin, PurchaseTime);
-                    RecordErrorLog(PurchaseTime, PurchaseStorageBin, "人為放貨", "Purchase_Complete_NoRFID");
+                    RecordShelfErrorLog(PurchaseTime, PurchaseStorageBin, "人為放貨", "Purchase_Complete_NoRFID");
                 }
             }
             catch (Exception ex)
             {
                 ResponseStr[0] = "X";
                 ResponseStr[1] = ex.ToString();
-                RecordErrorLog(PurchaseTime, PurchaseStorageBin, "例外狀況", "Purchase_Complete_NoRFID");
+                RecordShelfErrorLog(PurchaseTime, PurchaseStorageBin, "例外狀況", "Purchase_Complete_NoRFID");
             }
 
             _db.SaveChanges();
@@ -296,7 +300,7 @@ namespace Micron_AGV_WebServices.DAL
                         {
                             ResponseStr[0] = "X";
                             ResponseStr[1] = "取貨異常";
-                            RecordErrorLog(ShipmentTime, ShipmentStorageBin, "找不到派車資料(暫存區貨物被人為拿取)", "Shipment_Complete");
+                            RecordShelfErrorLog(ShipmentTime, ShipmentStorageBin, "找不到派車資料(暫存區貨物被人為拿取)", "Shipment_Complete");
                             IsPeopleFetch = "(人為拿取)";
                         }
                     }
@@ -318,7 +322,7 @@ namespace Micron_AGV_WebServices.DAL
             {
                 ResponseStr[0] = "X";
                 ResponseStr[1] = ex.ToString();
-                RecordErrorLog(ShipmentTime, ShipmentStorageBin, "例外狀況", "Shipment_Complete");
+                RecordShelfErrorLog(ShipmentTime, ShipmentStorageBin, "例外狀況", "Shipment_Complete");
             }
 
             _db.SaveChanges();

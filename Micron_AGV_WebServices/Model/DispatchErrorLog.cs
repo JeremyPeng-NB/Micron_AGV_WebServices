@@ -6,8 +6,8 @@ namespace Micron_AGV_WebServices.Model
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    [Table("ErrorLog")]
-    public partial class ErrorLog
+    [Table("DispatchErrorLog")]
+    public partial class DispatchErrorLog
     {
         [Key]
         [Column(Order = 0)]
@@ -15,14 +15,10 @@ namespace Micron_AGV_WebServices.Model
 
         [Key]
         [Column(Order = 1)]
-        public string StorageBin { get; set; }
-
-        [Key]
-        [Column(Order = 2)]
         public string Message { get; set; }
 
         [Key]
-        [Column(Order = 3)]
+        [Column(Order = 2)]
         public string FunctionName { get; set; }
     }
 }

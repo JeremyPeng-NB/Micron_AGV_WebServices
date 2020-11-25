@@ -49,15 +49,15 @@ namespace Micron_AGV_WebServices
         }
 
         [WebMethod]
-        public void Dispatch_AddTask(string TransferTask)
+        public string Dispatch_AddTask(string TransferTask)
         {
-            DispatchFunc.AddTask(TransferTask);
+            return DispatchFunc.AddTask(TransferTask);
         }
 
         [WebMethod]
-        public void Dispatch_MissionComplete(string AGVID, string RFID)
+        public string Dispatch_MissionComplete(string AGVID, string RFID)
         {
-            DispatchFunc.MissionComplete(AGVID, RFID);
+            return DispatchFunc.MissionComplete(AGVID, RFID);
         }
 
         [WebMethod]
@@ -74,17 +74,8 @@ namespace Micron_AGV_WebServices
             if (Content.Contains("叫車"))
             {
                 responseStr = ConnAPI.AGVTestAPI();
-                return responseStr;
             }
-            else
-            {
-                var jsonStr = DispatchFunc.CombineJsonStr(Content , "1");
-                if (!jsonStr.Contains("X"))
-                {
-                    responseStr = ConnAPI.AddCarMission(jsonStr);
-                }
-                return responseStr;
-            }
+            return responseStr;
         }
 
         [WebMethod]

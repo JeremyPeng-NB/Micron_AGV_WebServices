@@ -117,12 +117,13 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Model\CarMission.cs" />
+    <Compile Include="Model\DispatchErrorLog.cs" />
     <Compile Include="Model\ReturnCarMissionResult.cs" />
     <Compile Include="Model\VechicleRunningState.cs" />
     <Compile Include="Model\CarStatus.cs" />
     <Compile Include="Model\DispatchHistory.cs" />
     <Compile Include="Model\DispatchRecord.cs" />
-    <Compile Include="Model\ErrorLog.cs" />
+    <Compile Include="Model\ShelfErrorLog.cs" />
     <Compile Include="Model\Micron_AGV_DB.cs" />
     <Compile Include="Model\PurchaseAndShipmentLog.cs" />
     <Compile Include="Model\ShelfManagement.cs" />
