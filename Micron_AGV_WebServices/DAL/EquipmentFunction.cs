@@ -27,11 +27,11 @@ namespace Micron_AGV_WebServices.DAL
 
                 _db.SaveChanges();
 
-                return "設備狀態更新完成!";
+                return "Y";
             }
             else
             {
-                return "設備名稱輸入錯誤!!";
+                return "X";
             }
         }
     }
