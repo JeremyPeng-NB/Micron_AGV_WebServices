@@ -40,9 +40,9 @@ namespace Micron_AGV_WebServices
         }
 
         [WebMethod]
-        public string Equipment_Purchase_Status(string EquipmentPlace, string EquipmentStatus)
+        public string Equipment_Purchase_Status(string EquipmentPlace, bool EquipmentStatus)
         {
-            return "這是水哥的SWAG!用聽的你就會!當你孤單你會想起水~";
+            return EquipmentFunc.StatusUpdate(EquipmentPlace, EquipmentStatus);
         }
 
         [WebMethod]
@@ -56,7 +56,5 @@ namespace Micron_AGV_WebServices
         {
             return DispatchFunc.MissionComplete(CarID, RFID);
         }
-
-        
     }
 }

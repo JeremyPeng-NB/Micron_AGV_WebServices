@@ -111,6 +111,7 @@
     <Compile Include="DAL\ConnectAPI.cs" />
     <Compile Include="DAL\ConnectWinform.cs" />
     <Compile Include="DAL\DispatchFunction.cs" />
+    <Compile Include="DAL\EquipmentFunction.cs" />
     <Compile Include="DAL\ManagemetFunction.cs" />
     <Compile Include="DispatchAndStorage.asmx.cs">
       <DependentUpon>DispatchAndStorage.asmx</DependentUpon>
@@ -118,6 +119,7 @@
     </Compile>
     <Compile Include="Model\CarMission.cs" />
     <Compile Include="Model\DispatchErrorLog.cs" />
+    <Compile Include="Model\EquipmentStatus.cs" />
     <Compile Include="Model\ReturnCarMissionResult.cs" />
     <Compile Include="Model\VechicleRunningState.cs" />
     <Compile Include="Model\CarStatus.cs" />

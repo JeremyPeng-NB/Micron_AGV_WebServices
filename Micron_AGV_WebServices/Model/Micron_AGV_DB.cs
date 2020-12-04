@@ -13,6 +13,7 @@ namespace Micron_AGV_WebServices.Model
         }
 
         public virtual DbSet<CarStatus> CarStatuss { get; set; }
+        public virtual DbSet<EquipmentStatus> EquipmentStatuss { get; set; }
         public virtual DbSet<DispatchRecord> DispatchRecords { get; set; }
         public virtual DbSet<TaskList> TaskLists { get; set; }
         public virtual DbSet<TaskType> TaskTypes { get; set; }

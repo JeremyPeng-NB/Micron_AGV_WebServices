@@ -426,30 +426,29 @@ namespace Micron_AGV_WebServices.DAL
                     {
                         if (NextAction.ActionType == "放貨")
                         {
-                            bool Status = true;
-                            while (Status)
-                            {
-                                //詢問設備是否可以放貨 Y／Ｎ
-                                var IsCanPurchase = "Y";
+                            bool SwitchDet = true;
 
-                                if (IsCanPurchase == "Y") //設備可以放貨 
+                            while (SwitchDet)
+                            {
+                                var IsCanPurchase = _db.EquipmentStatuss.Where(x => x.Place == DispatchRecord.Storage).Select(x => x.Status).FirstOrDefault();
+
+                                if (IsCanPurchase)        //設備可以放貨 
                                 {
-                                    Status = false;       //修改Status
+                                    SwitchDet = false;    //修改Status
                                 }
                                 else                      //設備不可以放貨
                                 {
-                                    //寫Log + 睡覺
-                                    using (SqlConnection ConnStr = new SqlConnection(WebConfigurationManager.ConnectionStrings["Micron_AGV_DB"].ConnectionString))
-                                    {
-                                        string InsertLogStr = "INSERT INTO [DispatchErrorLog] ([Time],[Message],[FunctionName]) VALUES (@Time,@Message,@FunctionName)";
-                                        int AffectedRows = ConnStr.Execute(InsertLogStr, new { Time = DateTime.Now, Message = "設備無法收貨!" + Name, FunctionName = "KMR_Purchase_Test" });
-                                    }
+                                    //寫Log? + 睡覺
+                                    //using (SqlConnection ConnStr = new SqlConnection(WebConfigurationManager.ConnectionStrings["Micron_AGV_DB"].ConnectionString))
+                                    //{
+                                    //    string InsertLogStr = "INSERT INTO [DispatchErrorLog] ([Time],[Message],[FunctionName]) VALUES (@Time,@Message,@FunctionName)";
+                                    //    int AffectedRows = ConnStr.Execute(InsertLogStr, new { Time = DateTime.Now, Message = "設備無法收貨!", FunctionName = "KMR_Purchase_Test" });
+                                    //}
                                     Thread.Sleep(5000);
                                 }
                                 continue;
                             }
                         }
-                       
                         //放貨or取貨-都要CALL
                         //Call_KMR();
                         return "這個還沒有做好拉!先不要玩拉!";
