@@ -2,11 +2,15 @@
 using Micron_AGV_WebServices.Model;
 using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
 using System.Web;
 using System.Web.Configuration;
 
@@ -22,6 +26,9 @@ namespace Micron_AGV_WebServices.DAL
 
         //New For找尋新儲位
         ManagemetFunction ManagementFunc = new ManagemetFunction();
+
+        //KMR Buffeer
+        ArrayList buffer = null;
 
         //關閉資料庫
         public void Dispose()
@@ -84,31 +91,38 @@ namespace Micron_AGV_WebServices.DAL
                 _db.TaskLists.Add(AddTask);
                 _db.SaveChanges();
 
-                //查詢派車
-                var WithCarDispatch = _db.View_DispatchRecords.Where(x => x.TaskListID == NewTaskListID && x.ActionID == 1).FirstOrDefault();
+                //查詢是否派車
+                var WithCarDispatch = _db.View_DispatchRecords.Where(x => x.EndTime == null && x.TaskStatus == "執行中" && x.TaskListID == NewTaskListID && x.ActionID == 1).FirstOrDefault();
 
                 //如果有派車資料
                 if (WithCarDispatch != null)
                 {
-                    //組json字串 + ConnAPI(AGV Server)派車
-                    var jsonStr = CombineJsonStr(WithCarDispatch.ActionType, WithCarDispatch.AGVID);
-                    if (!jsonStr.Contains("X"))
+                    if (WithCarDispatch.AGVID.Contains("AGV"))
                     {
-                        var resultStr = ConnAPI.AddCarMission(jsonStr);
-                        responseStr += "派車狀態:" + resultStr;
-                        if (resultStr != "success")
+                        //組json字串 + ConnAPI(AGV Server)派車
+                        var jsonStr = CombineJsonStr(WithCarDispatch.ActionType, WithCarDispatch.AGVID);
+                        if (!jsonStr.Contains("X"))
                         {
+                            var resultStr = ConnAPI.AddCarMission(jsonStr);
+                            responseStr += "派車狀態:" + resultStr;
+                            if (resultStr != "success")
+                            {
+                                RecordDispatchErrorLog(DateTime.Now, responseStr, "Add_Task");
+                            }
+                        }
+                        else
+                        {
+                            responseStr += "派車狀態:傳輸字串格式錯誤!";
                             RecordDispatchErrorLog(DateTime.Now, responseStr, "Add_Task");
                         }
                     }
                     else
                     {
-                        responseStr += "派車狀態:傳輸字串格式錯誤!";
-                        RecordDispatchErrorLog(DateTime.Now, responseStr, "Add_Task");
+                        //Call_KMR();
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 responseStr = "任務新增失敗!" + ex.ToString();
                 RecordDispatchErrorLog(DateTime.Now, responseStr, "Add_Task");
@@ -339,41 +353,42 @@ namespace Micron_AGV_WebServices.DAL
             //回應字串
             string responseStr = "下一個任務:";
 
-            //AGV
-            if (Car.CarType == "AGV")
+            //查詢派車資料中此車目前所執行任務列表
+            var TaskTotal = _db.View_DispatchRecords.Where(x => x.TaskListID == Car.TaskListID);
+
+            //查詢車輛ID執行中的任務
+            var DispatchRecord = TaskTotal.Where(x => x.TaskStatus == "執行中").FirstOrDefault();
+
+            if (DispatchRecord != null)
             {
-                //查詢派車資料中此車目前所執行任務列表
-                var TaskTotal = _db.View_DispatchRecords.Where(x => x.TaskListID == Car.TaskListID);
-               
-                //查詢車輛ID執行中的任務
-                var DispatchRecord = TaskTotal.Where(x => x.TaskStatus == "執行中").FirstOrDefault();
+                //修改當前任務完成時間&任務狀態
+                DispatchRecord.EndTime = DateTime.Now;
+                DispatchRecord.TaskStatus = "完成";
 
-                if (DispatchRecord != null)
+                if (!string.IsNullOrWhiteSpace(RFID) && DispatchRecord.ActionType == "取貨")
                 {
-                    //修改當前任務完成時間&任務狀態
-                    DispatchRecord.EndTime = DateTime.Now;
-                    DispatchRecord.TaskStatus = "完成";
-                    if (!string.IsNullOrWhiteSpace(RFID) && DispatchRecord.ActionType == "取貨")
-                    {
-                        DispatchRecord.RFID = RFID;
-                        InsertPackageLog(RFID, "", AGVID, "取貨成功");
-                    }
-                    if (!string.IsNullOrWhiteSpace(RFID) && !string.IsNullOrWhiteSpace(DispatchRecord.Storage))
-                    {
-                        StorageEdit(DispatchRecord.Storage, RFID, "", "", "", Car.AGVID);
-                        InsertPackageLog(RFID, RFID, AGVID, "抵達" + DispatchRecord.Storage);
-                    }
-                    
-                    //如果不是最後一個任務
-                    if (DispatchRecord.ActionID != TaskTotal.Count())
-                    {
-                        //查詢下一任務
-                        var NextAction = TaskTotal.Where(x => x.ActionID == DispatchRecord.ActionID + 1).FirstOrDefault();
+                    DispatchRecord.RFID = RFID;
+                    InsertPackageLog(RFID, "", AGVID, "取貨成功");
+                }
+                if (!string.IsNullOrWhiteSpace(RFID) && !string.IsNullOrWhiteSpace(DispatchRecord.Storage))
+                {
+                    StorageEdit(DispatchRecord.Storage, RFID, "", "", "", Car.AGVID);
+                    InsertPackageLog(RFID, RFID, AGVID, "抵達" + DispatchRecord.Storage);
+                }
 
-                        //修改開始時間&狀態
-                        NextAction.StartTime = DateTime.Now;
-                        NextAction.TaskStatus = "執行中";
+                //如果不是最後一個任務
+                if (DispatchRecord.ActionID != TaskTotal.Count())
+                {
+                    //查詢下一任務
+                    var NextAction = TaskTotal.Where(x => x.ActionID == DispatchRecord.ActionID + 1).FirstOrDefault();
 
+                    //修改開始時間&狀態
+                    NextAction.StartTime = DateTime.Now;
+                    NextAction.TaskStatus = "執行中";
+
+                    //AGV
+                    if (Car.CarType == "AGV")
+                    {
                         //放貨前檢查
                         if (NextAction.ActionType == "放貨" && !(_db.ShelfManagements.Where(x => x.RFID == RFID && x.Storage == DispatchRecord.Storage && x.Status == "預定" && x.AGVID == DispatchRecord.AGVID).Any()))
                         {
@@ -406,67 +421,96 @@ namespace Micron_AGV_WebServices.DAL
                             }
                         }
                     }
-                    //最後一個動作
+                    //KMR
                     else
                     {
-                        TaskList TaskCompleted = _db.TaskLists.Where(x => x.TaskListID == Car.TaskListID).FirstOrDefault();
-
-                        TaskCompleted.TaskAcceptance = "任務完成";
-                        TaskCompleted.EndTime = DateTime.Now;
-
-                        responseStr = "任務完成!";
-
-                        _db.SaveChanges();
-
-                        var TaskListID = Car.TaskListID;
-
-                        Car.Status = "待機中";
-                        Car.TaskListID = null;
-
-                        // Stored Procedure
-                        // TaskList 資料移到 TaskHistory 
-                        // DispatchRecord 資料移到 DispatchHistory 
-                        using (SqlConnection Conn = new SqlConnection(WebConfigurationManager.ConnectionStrings["Micron_AGV_DB"].ConnectionString))
+                        if (NextAction.ActionType == "放貨")
                         {
-                            // 準備參數
-                            var parameters = new DynamicParameters();
-                            parameters.Add("@TasklistID", TaskListID, DbType.Guid, ParameterDirection.Input);
-                            Conn.Execute("SP_DispatchHistory", parameters, commandType: CommandType.StoredProcedure);
-                            Conn.Execute("SP_TaskHistory", parameters, commandType: CommandType.StoredProcedure);
+                            bool Status = true;
+                            while (Status)
+                            {
+                                //詢問設備是否可以放貨 Y／Ｎ
+                                var IsCanPurchase = "Y";
+
+                                if (IsCanPurchase == "Y") //設備可以放貨 
+                                {
+                                    Status = false;       //修改Status
+                                }
+                                else                      //設備不可以放貨
+                                {
+                                    //寫Log + 睡覺
+                                    using (SqlConnection ConnStr = new SqlConnection(WebConfigurationManager.ConnectionStrings["Micron_AGV_DB"].ConnectionString))
+                                    {
+                                        string InsertLogStr = "INSERT INTO [DispatchErrorLog] ([Time],[Message],[FunctionName]) VALUES (@Time,@Message,@FunctionName)";
+                                        int AffectedRows = ConnStr.Execute(InsertLogStr, new { Time = DateTime.Now, Message = "設備無法收貨!" + Name, FunctionName = "KMR_Purchase_Test" });
+                                    }
+                                    Thread.Sleep(5000);
+                                }
+                                continue;
+                            }
                         }
+                       
+                        //放貨or取貨-都要CALL
+                        //Call_KMR();
+                        return "這個還沒有做好拉!先不要玩拉!";
+                    }
+                }
+                //最後一個動作
+                else
+                {
+                    TaskList TaskCompleted = _db.TaskLists.Where(x => x.TaskListID == Car.TaskListID).FirstOrDefault();
 
-                        var WaitingTask = _db.View_TaskLists.Where(x => x.Car == Car.CarType && x.TaskAcceptance == "等待中").OrderBy(x => new { x.Priority, x.AcceptanceTime }).FirstOrDefault();
+                    TaskCompleted.TaskAcceptance = "任務完成";
+                    TaskCompleted.EndTime = DateTime.Now;
 
-                        //有待處理任務的時候....
-                        if (WaitingTask != null)
-                        {
-                            //新增任務
-                            AddDispatch(WaitingTask.TaskID.ToString(), WaitingTask.TaskListID, Car);
+                    responseStr = "任務完成!";
 
-                            TaskList NewTask = _db.TaskLists.Where(x => x.TaskListID == WaitingTask.TaskListID).FirstOrDefault();
+                    _db.SaveChanges();
 
-                            NewTask.TaskAcceptance = "執行中";
+                    var TaskListID = Car.TaskListID;
 
-                            Car.Status = "任務中";
-                            Car.TaskListID = WaitingTask.TaskListID;
+                    Car.Status = "待機中";
+                    Car.TaskListID = null;
 
-                        }
-                        else
-                        {   
-                            //0.主動執行任務
-                            //1.查詢碼頭有沒有空位&暫存區有東西要出貨
-                            //2.當碼頭有進貨&CPU拆箱有空&派車資料沒有前往CPU拆箱口不然就送暫存區
-                            //3.當暫存區有進貨&CPU拆箱有空&派車資料沒有前往CPU拆箱口
-                            ActiveTask();
-                        }
+                    // Stored Procedure
+                    // TaskList 資料移到 TaskHistory 
+                    // DispatchRecord 資料移到 DispatchHistory 
+                    using (SqlConnection Conn = new SqlConnection(WebConfigurationManager.ConnectionStrings["Micron_AGV_DB"].ConnectionString))
+                    {
+                        // 準備參數
+                        var parameters = new DynamicParameters();
+                        parameters.Add("@TasklistID", TaskListID, DbType.Guid, ParameterDirection.Input);
+                        Conn.Execute("SP_DispatchHistory", parameters, commandType: CommandType.StoredProcedure);
+                        Conn.Execute("SP_TaskHistory", parameters, commandType: CommandType.StoredProcedure);
+                    }
+
+                    var WaitingTask = _db.View_TaskLists.Where(x => x.Car == Car.CarType && x.TaskAcceptance == "等待中").OrderBy(x => new { x.Priority, x.AcceptanceTime }).FirstOrDefault();
+
+                    //有待處理任務的時候....
+                    if (WaitingTask != null)
+                    {
+                        //新增任務
+                        AddDispatch(WaitingTask.TaskID.ToString(), WaitingTask.TaskListID, Car);
+
+                        TaskList NewTask = _db.TaskLists.Where(x => x.TaskListID == WaitingTask.TaskListID).FirstOrDefault();
+
+                        NewTask.TaskAcceptance = "執行中";
+
+                        Car.Status = "任務中";
+                        Car.TaskListID = WaitingTask.TaskListID;
+
+                    }
+                    else
+                    {
+                        //0.主動執行任務
+                        //1.查詢碼頭有沒有空位&暫存區有東西要出貨
+                        //2.當碼頭有進貨&CPU拆箱有空&派車資料沒有前往CPU拆箱口不然就送暫存區
+                        //3.當暫存區有進貨&CPU拆箱有空&派車資料沒有前往CPU拆箱口
+                        ActiveTask();
                     }
                 }
             }
-            //KMR
-            else
-            {
 
-            }
             _db.SaveChanges();
             return responseStr;
         }
@@ -626,6 +670,111 @@ namespace Micron_AGV_WebServices.DAL
             //Response.Write(json);
 
             return json;
+        }
+
+        public string Call_KMR()
+        {
+            TcpClient tcpClient = new TcpClient("192.168.12.36", 5678);
+            Encoding encode = Encoding.ASCII;
+            Char splitchar = '-';
+
+            // Uses the GetStream public method to return the NetworkStream.
+            NetworkStream netStream = tcpClient.GetStream();
+            buffer = new ArrayList(encode.GetBytes("FabIn"));
+            string HEADER = "msgStart-";
+            string FOOTER = "-msgEnd";
+            Byte[] HEADERBytes = Encoding.UTF8.GetBytes(HEADER);
+            Byte[] FOOTERBytes = Encoding.UTF8.GetBytes(FOOTER);
+
+            if (netStream.CanWrite)
+            {
+                Byte[] sendBytes = Encoding.UTF8.GetBytes("FabIn");
+                netStream.Write(HEADERBytes, 0, HEADERBytes.Length);
+                netStream.Write(sendBytes, 0, sendBytes.Length);
+                netStream.Write(FOOTERBytes, 0, FOOTERBytes.Length);
+                netStream.WriteByte(2);
+            }
+            else
+            {
+                tcpClient.Close();
+                netStream.Close();
+            }
+
+            if (netStream.CanRead)
+            {
+                try
+                {
+                    int i = netStream.ReadByte();
+                    while (i > -1)
+                    {
+                        if (i == 1)
+                            buffer.Clear();
+                        else if (i == 2)
+                            break;
+                        else
+                            buffer.Add((byte)i);
+                        i = netStream.ReadByte();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (netStream != null)
+                        netStream.Close();
+                    if (tcpClient != null)
+                        tcpClient.Close();
+                    return "E";
+                }
+                finally
+                {
+                    if (netStream != null)
+                        netStream.Close();
+                    if (tcpClient != null)
+                        tcpClient.Close();
+                }
+                if (buffer != null && buffer.Count > 0)
+                {
+                    byte[] rbyte = (byte[])buffer.ToArray(typeof(System.Byte));
+                    string result = encode.GetString(rbyte, 0, rbyte.Length);
+                    if (String.IsNullOrEmpty(result) || result.IndexOf(splitchar) < 0)
+                    {
+                        return "收到錯誤的資訊內容!";
+                    }
+                    else
+                    {
+                        string length = result.Substring(0, result.IndexOf(splitchar));
+                        int datalength = 0;
+                        try
+                        {
+                            datalength = int.Parse(length);
+                        }
+                        catch
+                        {
+                            return "收到錯誤的資訊內容!";
+                            //throw new InvalidOperationException("LEN must be \"Number\"!!");
+                        }
+                        if (datalength == result.Length - length.Length - 1)
+                        {
+                            if (result.Substring(length.Length + 1) == "Y")
+                            {
+                                return "goodjob";
+                            }
+                        }
+                        else
+                        {
+                            return "收到錯誤的資訊內容!";
+                        }
+                    }
+                }
+            }
+            else
+            {
+                tcpClient.Close();
+                netStream.Close();
+                return "E";
+            }
+            tcpClient.Close();
+            netStream.Close();
+            return "Y2";
         }
         //以下別動
     }
