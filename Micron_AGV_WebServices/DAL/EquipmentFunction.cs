@@ -19,7 +19,7 @@ namespace Micron_AGV_WebServices.DAL
 
         public string StatusUpdate(string EquipmentPlace, bool EquipmentStatus)
         {
-            if ((EquipmentPlace == "Tower Stock" || EquipmentPlace == "APK"))
+            if ((EquipmentPlace == "TowerStocker" || EquipmentPlace == "APK"))
             {
                 var UpdatePlace = _db.EquipmentStatuss.Where(x => x.Place == EquipmentPlace).FirstOrDefault();
 
