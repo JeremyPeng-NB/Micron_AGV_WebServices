@@ -12,7 +12,7 @@ namespace Micron_AGV_WebServices.DAL
 {
     public class ConnectAPI
     {
-        public string AGVTestAPI()
+        public string AGVServerTest()
         {
             HttpWebRequest requestt = WebRequest.Create("http://192.168.12.65:1111/AGVTestAPI") as HttpWebRequest;
 
@@ -38,8 +38,10 @@ namespace Micron_AGV_WebServices.DAL
             }
         }
 
-        public string AddCarMission(string jsonStr)
+        public string AddCarMission(string ActionType, string AGVID, string StorageBin)
         {
+            var jsonStr = CombineJsonStr(ActionType, AGVID, StorageBin);
+
             HttpWebRequest requestt = WebRequest.Create("http://192.168.12.65:1111/AddCarMission") as HttpWebRequest;
 
             if (requestt != null)
@@ -68,6 +70,52 @@ namespace Micron_AGV_WebServices.DAL
             {
                 return "operation failed";
             }            
+        }
+
+        private string CombineJsonStr(string ActionType, string AGVID, string StorageBin)
+        {
+            int ActionID = 0;
+            string json = "X";
+
+            switch (ActionType)
+            {
+                case "移動":
+                    ActionID = 1;
+                    break;
+                case "取貨":
+                    ActionID = 2;
+                    break;
+                case "放貨":
+                    ActionID = 3;
+                    break;
+                default:
+                    break;
+            }
+
+            if (ActionID != 0 && !string.IsNullOrWhiteSpace(AGVID) && !string.IsNullOrEmpty(AGVID))
+            {
+                CarMission CarMission = new CarMission()
+                {
+                    userId = 1,
+                    executeAgv = AGVID,
+                    orderType = 1,
+                    priority = 0,
+                    tasks = new Tasks()
+                    {
+                        seqNum = 1,
+                        targetEntity = 5,
+                        action = ActionID,
+                        //value = 1 之後放貨 要新增抬升高度的參數
+                    }
+                };
+                //轉成JSON格式
+                json = JsonConvert.SerializeObject(CarMission);
+            }
+
+            //顯示
+            //Response.Write(json);
+
+            return json;
         }
     }
 }

@@ -21,11 +21,9 @@ namespace Micron_AGV_WebServices.DAL
         //開啟資料庫連結
         public Micron_AGV_DB _db = new Micron_AGV_DB();
 
-        //連結AGV Server的WebAPI Function
         ConnectAPI ConnAPI = new ConnectAPI();
-
-        //New For找尋新儲位
         ManagemetFunction ManagementFunc = new ManagemetFunction();
+        EquipmentFunction EquipmentFunc = new EquipmentFunction();
 
         //KMR Buffeer
         ArrayList buffer = null;
@@ -45,6 +43,7 @@ namespace Micron_AGV_WebServices.DAL
         {
             //回應字串
             string responseStr = "任務新增成功!";
+            bool DispatchResult = false;
             try
             {
                 //新增任務
@@ -85,41 +84,36 @@ namespace Micron_AGV_WebServices.DAL
                     Car.UpdataTime = DateTime.Now;
 
                     //任務放進派車資料(任務種類/派車任務ID/車輛資訊)
-                    AddDispatch(Task.TaskID.ToString(), NewTaskListID, Car);
+                    DispatchResult = AddDispatch(Task.TaskID.ToString(), NewTaskListID, Car);
                 }
 
-                _db.TaskLists.Add(AddTask);
-                _db.SaveChanges();
-
-                //查詢是否派車
-                var WithCarDispatch = _db.View_DispatchRecords.Where(x => x.EndTime == null && x.TaskStatus == "執行中" && x.TaskListID == NewTaskListID && x.ActionID == 1).FirstOrDefault();
-
-                //如果有派車資料
-                if (WithCarDispatch != null)
+                if (!DispatchResult)
                 {
-                    if (WithCarDispatch.AGVID.Contains("AGV"))
+                    _db.TaskLists.Add(AddTask);
+                    _db.SaveChanges();
+
+                    //查詢是否要派車
+                    var WithCarDispatch = _db.View_DispatchRecords.Where(x => x.EndTime == null && x.TaskStatus == "執行中" && x.TaskListID == NewTaskListID && x.ActionID == 1).FirstOrDefault();
+
+                    //如果要派車
+                    if (WithCarDispatch != null)
                     {
-                        //組json字串 + ConnAPI(AGV Server)派車
-                        var jsonStr = CombineJsonStr(WithCarDispatch.ActionType, WithCarDispatch.AGVID);
-                        if (!jsonStr.Contains("X"))
+                        //AGV
+                        if (WithCarDispatch.AGVID.Contains("AGV"))
                         {
-                            var resultStr = ConnAPI.AddCarMission(jsonStr);
-                            responseStr += "派車狀態:" + resultStr;
-                            if (resultStr != "success")
-                            {
-                                RecordDispatchErrorLog(DateTime.Now, responseStr, "Add_Task");
-                            }
+                            responseStr += "派車狀態:" + ConnAPI.AddCarMission(WithCarDispatch.ActionType, WithCarDispatch.AGVID, WithCarDispatch.Storage);
                         }
+                        // KMR
                         else
                         {
-                            responseStr += "派車狀態:傳輸字串格式錯誤!";
-                            RecordDispatchErrorLog(DateTime.Now, responseStr, "Add_Task");
+                            //Call_KMR();
                         }
                     }
-                    else
-                    {
-                        //Call_KMR();
-                    }
+                }
+                else
+                {
+                    responseStr = "任務新增失敗! 沒有可用的儲位!";
+                    RecordDispatchErrorLog(DateTime.Now, responseStr, "Add_Task");
                 }
             }
             catch (Exception ex)
@@ -137,9 +131,10 @@ namespace Micron_AGV_WebServices.DAL
         /// <param name="TaskID"></param>
         /// <param name="NewTaskListID"></param>
         /// <param name="car"></param>
-        private void AddDispatch(string TaskID, Guid NewTaskListID, CarStatus Car)
+        private bool AddDispatch(string TaskID, Guid NewTaskListID, CarStatus Car)
         {
             int Task = int.Parse(TaskID);
+            bool LocationIsNull = false; 
 
             //查詢任務流程
             IQueryable<View_TaskType> TaskProcess = _db.View_TaskTypes.Where(x => x.TaskID == Task);
@@ -163,6 +158,11 @@ namespace Micron_AGV_WebServices.DAL
                 if (!string.IsNullOrWhiteSpace(item.Destination))
                 {
                     Location = StorageCheck(item.TaskID, item.ActionID, item.Destination, Car.AGVID, item.Purpose);
+
+                    if (Location == null)
+                    {
+                        LocationIsNull = true;
+                    }
                 }
 
                 Dispatch.AGVID = Car.AGVID;
@@ -178,7 +178,12 @@ namespace Micron_AGV_WebServices.DAL
                 _db.DispatchRecords.Add(Dispatch);
             }
 
-            _db.SaveChanges();
+            if (!LocationIsNull)
+            {
+                _db.SaveChanges();
+            }
+
+            return LocationIsNull;
         }
 
         /// <summary>
@@ -198,10 +203,10 @@ namespace Micron_AGV_WebServices.DAL
                 case 3:
                     if (ActionID == 3)
                     {
-                        Location = _db.ShelfManagements.Where(x => x.Area == "碼頭" & x.Status == "正常" & x.WithPackage == "無").Select(x => x.Storage).FirstOrDefault();
+                        Location = _db.ShelfManagementTESTs.Where(x => x.Area == "碼頭" & x.Status == "正常" & x.WithPackage == "無").Select(x => x.Storage).FirstOrDefault();
                         if (Location == null)
                         {
-                            Location = _db.ShelfManagements.Where(x => x.Area == "暫存區" & x.Status == "正常" & x.WithPackage == "無").Select(x => x.Storage).FirstOrDefault();
+                            Location = _db.ShelfManagementTESTs.Where(x => x.Area == "暫存區" & x.Status == "正常" & x.WithPackage == "無").Select(x => x.Storage).FirstOrDefault();
                         }
                     }
                     else
@@ -213,7 +218,7 @@ namespace Micron_AGV_WebServices.DAL
                 case 4:
                     if (ActionID == 1)
                     {
-                        Location = _db.ShelfManagements.Where(x => x.Area == "空箱暫存" & x.Status == "正常" & x.WithPackage == "有").Select(x => x.Storage).FirstOrDefault();
+                        Location = _db.ShelfManagementTESTs.Where(x => x.Area == "空箱暫存" & x.Status == "正常" & x.WithPackage == "有").Select(x => x.Storage).FirstOrDefault();
                     }
                     else
                     {
@@ -224,7 +229,7 @@ namespace Micron_AGV_WebServices.DAL
                 case 5:
                     if (ActionID == 3)
                     {
-                        Location = _db.ShelfManagements.Where(x => x.Area == "空箱暫存" & x.Status == "正常" & x.WithPackage == "無").Select(x => x.Storage).FirstOrDefault();
+                        Location = _db.ShelfManagementTESTs.Where(x => x.Area == "空箱暫存" & x.Status == "正常" & x.WithPackage == "無").Select(x => x.Storage).FirstOrDefault();
                     }
                     else
                     {
@@ -236,11 +241,11 @@ namespace Micron_AGV_WebServices.DAL
                     switch (ActionID)
                     { //暫存區取貨(出貨)_暫存區取貨
                         case 1:
-                            Location = _db.ShelfManagements.Where(x => x.Area == "暫存區" & x.Status == "正常" & x.WithPackage == "有" & x.Purpose == "出貨").Select(x => x.Storage).FirstOrDefault();
+                            Location = _db.ShelfManagementTESTs.Where(x => x.Area == "暫存區" & x.Status == "正常" & x.WithPackage == "有" & x.Purpose == "出貨").Select(x => x.Storage).FirstOrDefault();
                             break;
                         //暫存區取貨(出貨)_碼頭放貨
                         case 3:
-                            Location = _db.ShelfManagements.Where(x => x.Area == "碼頭" & x.Status == "正常" & x.WithPackage == "無").Select(x => x.Storage).FirstOrDefault();
+                            Location = _db.ShelfManagementTESTs.Where(x => x.Area == "碼頭" & x.Status == "正常" & x.WithPackage == "無").Select(x => x.Storage).FirstOrDefault();
                             break;
                         default:
                             Location = Destination;
@@ -251,7 +256,7 @@ namespace Micron_AGV_WebServices.DAL
                 case 7:
                     if (ActionID == 1)
                     {
-                        Location = _db.ShelfManagements.Where(x => x.Area == "碼頭" & x.Status == "正常" & x.WithPackage == "有" & x.Purpose == "進貨").Select(x => x.Storage).FirstOrDefault();
+                        Location = _db.ShelfManagementTESTs.Where(x => x.Area == "碼頭" & x.Status == "正常" & x.WithPackage == "有" & x.Purpose == "進貨").Select(x => x.Storage).FirstOrDefault();
                     }
                     else
                     {
@@ -262,7 +267,7 @@ namespace Micron_AGV_WebServices.DAL
                 case 8:
                     if (ActionID == 1)
                     {
-                        Location = _db.ShelfManagements.Where(x => x.Area == "暫存區" & x.Status == "正常" & x.WithPackage == "有" & x.Purpose == "進貨").Select(x => x.Storage).FirstOrDefault();
+                        Location = _db.ShelfManagementTESTs.Where(x => x.Area == "暫存區" & x.Status == "正常" & x.WithPackage == "有" & x.Purpose == "進貨").Select(x => x.Storage).FirstOrDefault();
                     }
                     else
                     {
@@ -274,11 +279,11 @@ namespace Micron_AGV_WebServices.DAL
                     switch (ActionID)
                     {  //碼頭取貨(進貨)_碼頭取貨
                         case 1:
-                            Location = _db.ShelfManagements.Where(x => x.Area == "碼頭" & x.Status == "正常" & x.WithPackage == "有" & x.Purpose == "進貨").Select(x => x.Storage).FirstOrDefault();
+                            Location = _db.ShelfManagementTESTs.Where(x => x.Area == "碼頭" & x.Status == "正常" & x.WithPackage == "有" & x.Purpose == "進貨").Select(x => x.Storage).FirstOrDefault();
                             break;
                         //碼頭取貨(進貨)_暫存區放貨
                         case 3:
-                            Location = _db.ShelfManagements.Where(x => x.Area == "暫存區" & x.Status == "正常" & x.WithPackage == "無").Select(x => x.Storage).FirstOrDefault();
+                            Location = _db.ShelfManagementTESTs.Where(x => x.Area == "暫存區" & x.Status == "正常" & x.WithPackage == "無").Select(x => x.Storage).FirstOrDefault();
                             break;
                         default:
                             Location = Destination;
@@ -302,7 +307,7 @@ namespace Micron_AGV_WebServices.DAL
         /// <param name="WithPackage"></param>
         private void StorageEdit(string Storage, string RFID, string Purpose, string WithPackage, string Status, string AGVID)
         {
-            var StorageEdit = _db.ShelfManagements.Where(x => x.Storage == Storage).FirstOrDefault();
+            var StorageEdit = _db.ShelfManagementTESTs.Where(x => x.Storage == Storage).FirstOrDefault();
 
             if (StorageEdit != null)
             {
@@ -359,21 +364,21 @@ namespace Micron_AGV_WebServices.DAL
             //查詢車輛ID執行中的任務
             var DispatchRecord = TaskTotal.Where(x => x.TaskStatus == "執行中").FirstOrDefault();
 
+            //當有任務要執行時
             if (DispatchRecord != null)
             {
-                //修改當前任務完成時間&任務狀態
+                //新增和修改當前任務完成時間&狀態
                 DispatchRecord.EndTime = DateTime.Now;
                 DispatchRecord.TaskStatus = "完成";
-
                 if (!string.IsNullOrWhiteSpace(RFID) && DispatchRecord.ActionType == "取貨")
                 {
                     DispatchRecord.RFID = RFID;
                     InsertPackageLog(RFID, "", AGVID, "取貨成功");
                 }
-                if (!string.IsNullOrWhiteSpace(RFID) && !string.IsNullOrWhiteSpace(DispatchRecord.Storage))
+                if (!string.IsNullOrWhiteSpace(DispatchRecord.Storage))
                 {
                     StorageEdit(DispatchRecord.Storage, RFID, "", "", "", Car.AGVID);
-                    InsertPackageLog(RFID, RFID, AGVID, "抵達" + DispatchRecord.Storage);
+                    InsertPackageLog(RFID, DispatchRecord.Storage, AGVID, "抵達" + DispatchRecord.Storage);
                 }
 
                 //如果不是最後一個任務
@@ -382,73 +387,102 @@ namespace Micron_AGV_WebServices.DAL
                     //查詢下一任務
                     var NextAction = TaskTotal.Where(x => x.ActionID == DispatchRecord.ActionID + 1).FirstOrDefault();
 
-                    //修改開始時間&狀態
+                    //修改下一個任務的開始時間/狀態
                     NextAction.StartTime = DateTime.Now;
                     NextAction.TaskStatus = "執行中";
 
                     //AGV
                     if (Car.CarType == "AGV")
                     {
-                        //放貨前檢查
-                        if (NextAction.ActionType == "放貨" && !(_db.ShelfManagements.Where(x => x.RFID == RFID && x.Storage == DispatchRecord.Storage && x.Status == "預定" && x.AGVID == DispatchRecord.AGVID).Any()))
+                        switch (NextAction.ActionType)
                         {
-                            //再找新儲位
-                            var NewStorageBin = ManagementFunc.NoticeNewStorageBin(NextAction.RFID);
-                            DispatchRecord.TaskStatus = "執行中";
-                            DispatchRecord.EndTime = null;
-                            NextAction.TaskStatus = "等待中";
-                            NextAction.StartTime = null;
-
-                            //叫車去下一個位置(待續)
-                        }
-                        else
-                        {
-                            //組json字串 + ConnAPI(AGV Server)派車
-                            var jsonStr = CombineJsonStr(NextAction.ActionType, NextAction.AGVID);
-                            if (!jsonStr.Contains("X"))
-                            {
-                                var resultStr = ConnAPI.AddCarMission(jsonStr);
-                                responseStr += NextAction.Action + "\n派車狀態:" + resultStr;
-                                if (resultStr != "success")
+                            case "放貨":
+                                if (!NextAction.Action.Contains("CPU"))
                                 {
-                                    RecordDispatchErrorLog(DateTime.Now, responseStr, "MissionComplete");
+                                    #region 貨架放貨前檢查
+                                    var StorageInfo = _db.ShelfManagementTESTs.Where(x => x.Storage == DispatchRecord.Storage).FirstOrDefault();
+                                    if (StorageInfo.Status != "預定")
+                                    {
+                                        //狀態復歸回上一步驟
+                                        DispatchRecord.TaskStatus = "執行中";
+                                        DispatchRecord.EndTime = null;
+                                        NextAction.TaskStatus = "等待中";
+                                        NextAction.StartTime = null;
+
+                                        //查詢目標動作資訊
+                                        var ActionInfo = _db.View_TaskTypes.Where(x => x.Car == "AGV" && x.Action == DispatchRecord.Action && x.NextAction == NextAction.Action).FirstOrDefault();
+
+                                        //找尋新儲位
+                                        //有的話就修改資料表 + 派車
+                                        //沒有的話就等一下再查儲位
+                                        while (true)
+                                        {
+                                            var NewStorageInfo = _db.ShelfManagementTESTs.Where(x => x.Status == "正常" && x.Area == StorageInfo.Area && x.WithPackage == "無").FirstOrDefault();
+
+                                            if (!string.IsNullOrEmpty(NewStorageInfo.Storage) || !string.IsNullOrWhiteSpace(NewStorageInfo.Storage))
+                                            {
+                                                StorageEdit(NewStorageInfo.Storage, RFID, ActionInfo.Purpose, "", "預定", Car.AGVID);
+                                                DispatchRecord.Storage = NewStorageInfo.Storage;
+                                                responseStr += NextAction.Action + " 派車狀態:" + ConnAPI.AddCarMission(DispatchRecord.ActionType, DispatchRecord.AGVID, NewStorageInfo.Storage);
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                Thread.Sleep(5000);
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        responseStr += NextAction.Action + " 派車狀態:" + ConnAPI.AddCarMission(NextAction.ActionType, NextAction.AGVID, DispatchRecord.Storage);
+                                    }
+                                    #endregion
                                 }
-                            }
-                            else
-                            {
-                                responseStr += NextAction.Action + "\n派車狀態:傳輸字串格式錯誤!";
-                                RecordDispatchErrorLog(DateTime.Now, responseStr, "MissionComplete");
-                            }
+                                else
+                                {
+                                    //E84 ??
+                                    #region 設備放貨前檢查
+                                    EquipmentFunc.StatusCheck(DispatchRecord.Storage);
+                                    responseStr += NextAction.Action + " 派車狀態:" + ConnAPI.AddCarMission(NextAction.ActionType, NextAction.AGVID, DispatchRecord.Storage);
+                                    #endregion
+                                }
+                                break;
+                            case "取貨":
+                                #region 取貨前檢查
+                                if (NextAction.Action == "暫存區取貨" || NextAction.Action == "碼頭取貨" || NextAction.Action == "空箱暫存區取空箱")
+                                {
+                                    var ShelfStorageBin = _db.ShelfManagementTESTs.Where(x => x.Storage == DispatchRecord.Storage).FirstOrDefault();
+                                    if (string.IsNullOrWhiteSpace(ShelfStorageBin.Status) || string.IsNullOrEmpty(ShelfStorageBin.Status) || ShelfStorageBin.Status != "預定")
+                                    {
+                                        responseStr = "非預定的取貨儲位!";
+                                        RecordDispatchErrorLog(DateTime.Now, responseStr, "MissionComplete");
+                                        //去查貨的RFID放在哪個位置? (待續)
+                                    }
+                                    if (responseStr != "非預定的取貨儲位!")
+                                    {
+                                        responseStr += NextAction.Action + " 派車狀態:" + ConnAPI.AddCarMission(NextAction.ActionType, NextAction.AGVID, DispatchRecord.Storage);
+                                    }
+                                }
+                                else
+                                {
+                                    //E84 ??
+                                    #region 設備取貨前檢查
+                                    EquipmentFunc.StatusCheck(DispatchRecord.Storage);
+                                    responseStr += NextAction.Action + " 派車狀態:" + ConnAPI.AddCarMission(NextAction.ActionType, NextAction.AGVID, DispatchRecord.Storage);
+                                    #endregion
+                                }
+                                #endregion
+                                break;
+                            case "移動":
+                                responseStr += NextAction.Action + " 派車狀態:" + ConnAPI.AddCarMission(NextAction.ActionType, NextAction.AGVID, NextAction.Storage);
+                                break;
+                            default:
+                                break;
                         }
                     }
                     //KMR
                     else
                     {
-                        if (NextAction.ActionType == "放貨")
-                        {
-                            bool SwitchDet = true;
-
-                            while (SwitchDet)
-                            {
-                                var IsCanPurchase = _db.EquipmentStatuss.Where(x => x.Place == DispatchRecord.Storage).Select(x => x.Status).FirstOrDefault();
-
-                                if (IsCanPurchase)        //設備可以放貨 
-                                {
-                                    SwitchDet = false;    //修改Status
-                                }
-                                else                      //設備不可以放貨
-                                {
-                                    //寫Log? + 睡覺
-                                    //using (SqlConnection ConnStr = new SqlConnection(WebConfigurationManager.ConnectionStrings["Micron_AGV_DB"].ConnectionString))
-                                    //{
-                                    //    string InsertLogStr = "INSERT INTO [DispatchErrorLog] ([Time],[Message],[FunctionName]) VALUES (@Time,@Message,@FunctionName)";
-                                    //    int AffectedRows = ConnStr.Execute(InsertLogStr, new { Time = DateTime.Now, Message = "設備無法收貨!", FunctionName = "KMR_Purchase_Test" });
-                                    //}
-                                    Thread.Sleep(5000);
-                                }
-                                continue;
-                            }
-                        }
                         //放貨or取貨-都要CALL
                         //Call_KMR();
                         return "這個還沒有做好拉!先不要玩拉!";
@@ -523,9 +557,9 @@ namespace Micron_AGV_WebServices.DAL
             //派車資料
             IQueryable<DispatchRecord> DispatchRecord = _db.DispatchRecords;
             //碼頭狀態
-            IQueryable<ShelfManagement> Cargoterminal = _db.ShelfManagements.Where(x => x.Status == "正常" & x.Area == "碼頭");
+            IQueryable<ShelfManagementTEST> Cargoterminal = _db.ShelfManagementTESTs.Where(x => x.Status == "正常" & x.Area == "碼頭");
             //暫存區狀態
-            IQueryable<ShelfManagement> StorageCache = _db.ShelfManagements.Where(x => x.Status == "正常" & x.Area == "暫存區").OrderBy(x => x.UpDataTime);
+            IQueryable<ShelfManagementTEST> StorageCache = _db.ShelfManagementTESTs.Where(x => x.Status == "正常" & x.Area == "暫存區").OrderBy(x => x.UpDataTime);
 
             //1.查詢碼頭有沒有空位&暫存區有東西要出貨
 
@@ -587,7 +621,7 @@ namespace Micron_AGV_WebServices.DAL
         /// </summary>
         /// <param name="StorageCache"></param>
         /// <param name="DispatchRecord"></param>
-        private void Storage_2(IQueryable<ShelfManagement> StorageCache, IQueryable<DispatchRecord> DispatchRecord)
+        private void Storage_2(IQueryable<ShelfManagementTEST> StorageCache, IQueryable<DispatchRecord> DispatchRecord)
         {
             string StagingStatus = StorageCache.Where(x => x.WithPackage == "有" & x.Purpose == "進貨").OrderBy(x => x.UpDataTime).Select(x => x.Storage).FirstOrDefault();
 
@@ -623,52 +657,6 @@ namespace Micron_AGV_WebServices.DAL
             InsertErrorLog.Message = Message;
             InsertErrorLog.FunctionName = FunctionName;
             _db.DispatchErrorLogs.Add(InsertErrorLog);
-        }
-
-        public string CombineJsonStr(string ActionType, string AGVID)
-        {
-            int ActionID = 0;
-            string json = "X";
-
-            switch (ActionType)
-            {
-                case "移動":
-                    ActionID = 1;
-                    break;
-                case "取貨":
-                    ActionID = 2;
-                    break;
-                case "放貨":
-                    ActionID = 3;
-                    break;
-                default:
-                    break;
-            }
-
-            if (ActionID != 0 && !string.IsNullOrWhiteSpace(AGVID) && !string.IsNullOrEmpty(AGVID))
-            {
-                CarMission CarMission = new CarMission()
-                {
-                    userId = 1,
-                    executeAgv = AGVID,
-                    orderType = 1,
-                    priority = 0,
-                    tasks = new Tasks()
-                    {
-                        seqNum = 1,
-                        targetEntity = 5,
-                        action = ActionID,
-                        //value = 1 之後放貨 要新增抬升高度的參數
-                    }
-                };
-                //轉成JSON格式
-                json = JsonConvert.SerializeObject(CarMission);
-            }
-
-            //顯示
-            //Response.Write(json);
-
-            return json;
         }
 
         public string Call_KMR()
