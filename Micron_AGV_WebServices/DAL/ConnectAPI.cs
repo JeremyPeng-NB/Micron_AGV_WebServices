@@ -13,41 +13,54 @@ namespace Micron_AGV_WebServices.DAL
 {
     public class ConnectAPI
     {
-        public string AddCarMission(string ActionType, string AGVID, string targetEntity, int UpValue)
-        {
-            var jsonStr = CombineJsonStr(ActionType, AGVID, Convert.ToInt32(targetEntity), UpValue);
+        ReturnMissionResult MissionResult = new ReturnMissionResult();
 
+        public string AddCarTask(string NextAction, string ActionType, string AGVID, string targetEntity, int UpValue)
+        {
             HttpWebRequest requestt = WebRequest.Create(ConfigurationManager.AppSettings["ServerIP"]) as HttpWebRequest;
 
-            if (requestt != null && jsonStr != null)
+            try
             {
-                requestt.Method = "POST";
-                requestt.KeepAlive = true;
-                requestt.ContentType = "application/json";
-
-                byte[] bs = Encoding.UTF8.GetBytes(jsonStr);
-
-                using (Stream reqStream = requestt.GetRequestStream())
+                if (requestt != null)
                 {
-                    reqStream.Write(bs, 0, bs.Length);
-                    reqStream.Flush();
+                    requestt.Method = "POST";
+                    requestt.KeepAlive = true;
+                    requestt.ContentType = "application/json";
+
+                    var jsonStr = AddTaskJson(ActionType, AGVID, Convert.ToInt32(targetEntity), UpValue);
+                    byte[] bs = Encoding.UTF8.GetBytes(jsonStr);
+
+                    using (Stream reqStream = requestt.GetRequestStream())
+                    {
+                        reqStream.Write(bs, 0, bs.Length);
+                        reqStream.Flush();
+                    }
+
+                    using (WebResponse response = requestt.GetResponse())
+                    {
+                        StreamReader sr = new StreamReader(response.GetResponseStream());
+                        string resultt = sr.ReadToEnd();
+                        MissionResult = JsonConvert.DeserializeObject<ReturnMissionResult>(resultt);
+                        MissionResult.message += "! NextAction:" + NextAction;
+                        return MissionResult.ToString();
+                    }
                 }
-
-                using (WebResponse response = requestt.GetResponse())
+                else
                 {
-                    StreamReader sr = new StreamReader(response.GetResponseStream());
-                    string resultt = sr.ReadToEnd();
-                    ReturnCarMissionResult CarMissionResult = JsonConvert.DeserializeObject<ReturnCarMissionResult>(resultt);
-                    return CarMissionResult.message;
+                    MissionResult.code = -1;
+                    MissionResult.message += "operation failed";
+                    return MissionResult.ToString();
                 }
             }
-            else
+            catch (Exception ex)
             {
-                return "operation failed";
+                MissionResult.code = -1;
+                MissionResult.message += ex.ToString();
+                return MissionResult.ToString();
             }
         }
 
-        private string CombineJsonStr(string ActionType, string AGVID, int targetEntity, int UpValue)
+        private string AddTaskJson(string ActionType, string AGVID, int targetEntity, int UpValue)
         {
             int ActionID = 0;
 
@@ -87,7 +100,6 @@ namespace Micron_AGV_WebServices.DAL
                         }
                     }
                 };
-                //轉成JSON格式
                 json = JsonConvert.SerializeObject(CarMission);
             }
 
@@ -95,6 +107,20 @@ namespace Micron_AGV_WebServices.DAL
             //Response.Write(json);
 
             return json;
+        }
+
+        public string MissionCompleteJson(string CompleteStr)
+        {
+            MissionResult.code = 0;
+            MissionResult.message += CompleteStr;
+            return MissionResult.ToString();
+        }
+
+        public string FailStatusJson(string FailStr)
+        {
+            MissionResult.code = -1;
+            MissionResult.message += FailStr;
+            return MissionResult.ToString();
         }
     }
 }

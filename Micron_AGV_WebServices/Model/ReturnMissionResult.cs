@@ -5,7 +5,7 @@ using System.Web;
 
 namespace Micron_AGV_WebServices.Model
 {
-    public class ReturnCarMissionResult
+    public class ReturnMissionResult
     {
         public int code { get; set; }
         public string message { get; set; }
