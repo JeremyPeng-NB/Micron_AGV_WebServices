@@ -20,7 +20,7 @@ namespace Micron_AGV_WebServices.DAL
 
         public string StatusUpdate(string EquipmentPlace, bool EquipmentStatus)
         {
-            if ((EquipmentPlace == "TowerStocker" || EquipmentPlace == "APK" || EquipmentPlace == "UPK" || EquipmentPlace == "CPUOUT" || EquipmentPlace == "CPUIN"))
+            if ((EquipmentPlace == "CPUOUT" || EquipmentPlace == "CPUIN"))
             {
                 var UpdatePlace = _db.EquipmentStatuss.Where(x => x.Place == EquipmentPlace).FirstOrDefault();
 
@@ -60,7 +60,7 @@ namespace Micron_AGV_WebServices.DAL
                 {
                     EquiStatusDet = false; //修改Status
                 }
-                else                       //設備不可以放貨
+                else                      //設備不可以放貨
                 {
                     //寫Log? + 睡覺
                     //using (SqlConnection ConnStr = new SqlConnection(WebConfigurationManager.ConnectionStrings["Micron_AGV_DB"].ConnectionString))

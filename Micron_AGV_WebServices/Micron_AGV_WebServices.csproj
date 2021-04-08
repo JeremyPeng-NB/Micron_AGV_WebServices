@@ -66,6 +66,7 @@
     </Reference>
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
@@ -105,9 +106,12 @@
   <ItemGroup>
     <Content Include="DispatchAndStorage.asmx" />
     <None Include="Web References\WebReference\DispatchAndStorage.disco" />
-    <Content Include="Web.config" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AgvWebService.cs" />
     <Compile Include="DAL\ConnectAPI.cs" />
     <Compile Include="DAL\ConnectWinform.cs" />
     <Compile Include="DAL\DispatchFunction.cs" />

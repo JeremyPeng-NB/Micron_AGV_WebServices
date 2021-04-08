@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Services;
+using System.Threading.Tasks;
 
 namespace Micron_AGV_WebServices
 {
@@ -20,24 +21,25 @@ namespace Micron_AGV_WebServices
         ManagemetFunction ManagementFunc = new ManagemetFunction();
         DispatchFunction DispatchFunc = new DispatchFunction();
         EquipmentFunction EquipmentFunc = new EquipmentFunction();
+        AgvWebService EBulletin = new AgvWebService();
 
-        [WebMethod]
-        public string[] Shelf_Purchase_Complete_HaveRFID(DateTime PurchaseTime, string PurchaseStorageBin, string PurchaseStatus, string RFID)
-        {
-            return ManagementFunc.Purchase_Complete_HaveRFID(PurchaseTime, PurchaseStorageBin, PurchaseStatus, RFID);
-        }
+        //[WebMethod]
+        //public string[] Shelf_Purchase_Complete_HaveRFID(DateTime PurchaseTime, string PurchaseStorageBin, string PurchaseStatus, string RFID)
+        //{
+        //    return ManagementFunc.Purchase_Complete_HaveRFID(PurchaseTime, PurchaseStorageBin, PurchaseStatus, RFID);
+        //}
 
-        [WebMethod]
-        public string[] Shelf_Purchase_Complete_NoRFID(DateTime PurchaseTime, string PurchaseStorageBin, string PurchaseStatus)
-        {
-            return ManagementFunc.Purchase_Complete_NoRFID(PurchaseTime, PurchaseStorageBin, PurchaseStatus);
-        }
+        //[WebMethod]
+        //public string[] Shelf_Purchase_Complete_NoRFID(DateTime PurchaseTime, string PurchaseStorageBin, string PurchaseStatus)
+        //{
+        //    return ManagementFunc.Purchase_Complete_NoRFID(PurchaseTime, PurchaseStorageBin, PurchaseStatus);
+        //}
 
-        [WebMethod]
-        public string[] Shelf_Shipment_Complete(DateTime ShipmentTime, string ShipmentStorageBin)
-        {
-            return ManagementFunc.Shipment_Complete(ShipmentTime, ShipmentStorageBin);
-        }
+        //[WebMethod]
+        //public string[] Shelf_Shipment_Complete(DateTime ShipmentTime, string ShipmentStorageBin)
+        //{
+        //    return ManagementFunc.Shipment_Complete(ShipmentTime, ShipmentStorageBin);
+        //}
 
         [WebMethod]
         public string Equipment_Purchase_Status(string EquipmentPlace, bool EquipmentStatus)
@@ -52,9 +54,33 @@ namespace Micron_AGV_WebServices
         }
 
         [WebMethod]
-        public string Car_Dispatch_MissionComplete(string CarID, string RFID)
+        public string MissionComplete(string AGVID)
         {
-            return DispatchFunc.MissionComplete(CarID, RFID);
+            return DispatchFunc.MissionComplete(AGVID);
         }
+
+        //[WebMethod]
+        //public bool EquRunning(string eguName, double data_vaule, DateTime record_time)
+        //{
+        //    return EBulletin.EquRunning(eguName, data_vaule, record_time);
+        //}
+
+        //[WebMethod]
+        //public bool DeliverTime(string eguName, int data_vaule, DateTime record_time)
+        //{
+        //    return EBulletin.DeliverTime(eguName, data_vaule, record_time);
+        //}
+
+        //[WebMethod]
+        //public bool EquPurchaseStatus(string eguName, int data_vaule, DateTime record_time)
+        //{
+        //    return EBulletin.EquPurchaseStatus(eguName, data_vaule, record_time);
+        //}
+
+        //[WebMethod]
+        //public bool EquUtlization(string eguName, int data_vaule, DateTime record_time)
+        //{
+        //    return EBulletin.EquUtlization(eguName, data_vaule, record_time);
+        //}
     }
 }
