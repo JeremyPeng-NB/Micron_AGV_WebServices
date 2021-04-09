@@ -124,6 +124,7 @@
     <Compile Include="Model\CarMission.cs" />
     <Compile Include="Model\DispatchErrorLog.cs" />
     <Compile Include="Model\EquipmentStatus.cs" />
+    <Compile Include="Model\NodeMapping.cs" />
     <Compile Include="Model\ReturnMissionResult.cs" />
     <Compile Include="Model\VechicleRunningState.cs" />
     <Compile Include="Model\CarStatus.cs" />

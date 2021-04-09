@@ -19,6 +19,6 @@ namespace Micron_AGV_WebServices.Model
         public int seqNum { get; set; }
         public int targetNodeId { get; set; }
         public int action { get; set; }
-        public int value { get; set; }
+        public double value { get; set; }
     }
 }

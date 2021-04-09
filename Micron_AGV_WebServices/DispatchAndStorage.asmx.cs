@@ -48,7 +48,7 @@ namespace Micron_AGV_WebServices
         }
 
         [WebMethod]
-        public string Car_Dispatch_AddTask(string TransferTask)
+        public string DispatchAddTask(string TransferTask)
         {
             return DispatchFunc.AddTask(TransferTask);
         }

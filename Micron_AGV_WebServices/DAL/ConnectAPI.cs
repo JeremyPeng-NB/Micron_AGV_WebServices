@@ -13,9 +13,11 @@ namespace Micron_AGV_WebServices.DAL
 {
     public class ConnectAPI
     {
+        Micron_AGV_DB _db = new Micron_AGV_DB();
+
         ReturnMissionResult MissionResult = new ReturnMissionResult();
 
-        public string AddCarTask(string NextAction, string ActionType, string AGVID, string targetEntity, int UpValue)
+        public string AddCarTask(string NextAction, string ActionType, string AGVID, string targetEntity)
         {
             HttpWebRequest requestt = WebRequest.Create(ConfigurationManager.AppSettings["ServerIP"]) as HttpWebRequest;
 
@@ -27,7 +29,7 @@ namespace Micron_AGV_WebServices.DAL
                     requestt.KeepAlive = true;
                     requestt.ContentType = "application/json";
 
-                    var jsonStr = AddTaskJson(ActionType, AGVID, Convert.ToInt32(targetEntity), UpValue);
+                    var jsonStr = AddTaskJson(ActionType, AGVID, targetEntity);
                     byte[] bs = Encoding.UTF8.GetBytes(jsonStr);
 
                     using (Stream reqStream = requestt.GetRequestStream())
@@ -60,7 +62,7 @@ namespace Micron_AGV_WebServices.DAL
             }
         }
 
-        private string AddTaskJson(string ActionType, string AGVID, int targetEntity, int UpValue)
+        private string AddTaskJson(string ActionType, string AGVID, string targetEntity)
         {
             int ActionID = 0;
 
@@ -83,6 +85,8 @@ namespace Micron_AGV_WebServices.DAL
 
             if (ActionID != 0)
             {
+                var targetInfo = _db.NodeMappings.Where(x => x.StorageBin == targetEntity).FirstOrDefault();
+
                 CarMission CarMission = new CarMission()
                 {
                     userId = 1,
@@ -94,9 +98,9 @@ namespace Micron_AGV_WebServices.DAL
                         new Tasks()
                         { 
                             seqNum = 1,
-                            targetNodeId = targetEntity,
+                            targetNodeId = targetInfo.Node,
                             action = ActionID,
-                            value = UpValue
+                            value = targetInfo.Height
                         }
                     }
                 };

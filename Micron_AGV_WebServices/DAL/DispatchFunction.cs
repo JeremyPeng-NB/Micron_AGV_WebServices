@@ -19,7 +19,7 @@ namespace Micron_AGV_WebServices.DAL
     public class DispatchFunction
     {
         //開啟資料庫連結
-        public Micron_AGV_DB _db = new Micron_AGV_DB();
+        Micron_AGV_DB _db = new Micron_AGV_DB();
 
         ConnectAPI ConnAPI = new ConnectAPI();
         ManagemetFunction ManagementFunc = new ManagemetFunction();
@@ -92,7 +92,7 @@ namespace Micron_AGV_WebServices.DAL
                         //AGV
                         if (WithCarDispatch.AGVID.Contains("AGV"))
                         {
-                            responseStr = ConnAPI.AddCarTask(WithCarDispatch.Action, WithCarDispatch.ActionType, WithCarDispatch.AGVID, WithCarDispatch.Storage, 0);
+                            responseStr = ConnAPI.AddCarTask(WithCarDispatch.Action, WithCarDispatch.ActionType, WithCarDispatch.AGVID, WithCarDispatch.Storage);
                         }
                         // KMR
                         else
@@ -404,7 +404,7 @@ namespace Micron_AGV_WebServices.DAL
                                             {
                                                 StorageEdit(NewStorageInfo.Storage, ActionInfo.Purpose, "", "預定", Car.AGVID);
                                                 DispatchRecord.Storage = NewStorageInfo.Storage;
-                                                responseStr = ConnAPI.AddCarTask(NextAction.Action, DispatchRecord.ActionType, DispatchRecord.AGVID, NewStorageInfo.Storage, 0);
+                                                responseStr = ConnAPI.AddCarTask(NextAction.Action, DispatchRecord.ActionType, DispatchRecord.AGVID, NewStorageInfo.Storage);
                                                 break;
                                             }
                                             else
@@ -415,7 +415,7 @@ namespace Micron_AGV_WebServices.DAL
                                     }
                                     else
                                     {
-                                        responseStr = ConnAPI.AddCarTask(NextAction.Action, NextAction.ActionType, NextAction.AGVID, DispatchRecord.Storage, 0);
+                                        responseStr = ConnAPI.AddCarTask(NextAction.Action, NextAction.ActionType, NextAction.AGVID, DispatchRecord.Storage);
                                     }
                                     #endregion
                                 }
@@ -426,9 +426,7 @@ namespace Micron_AGV_WebServices.DAL
 
                                     //todo : E84交握
 
-                                    //todo : 查節點
-
-                                    responseStr = ConnAPI.AddCarTask(NextAction.Action, NextAction.ActionType, NextAction.AGVID, DispatchRecord.Storage, 0);
+                                    responseStr = ConnAPI.AddCarTask(NextAction.Action, NextAction.ActionType, NextAction.AGVID, DispatchRecord.Storage);
                                     #endregion
                                 }
                                 break;
@@ -449,25 +447,23 @@ namespace Micron_AGV_WebServices.DAL
 
                                     if (StorageStatus == "Y")
                                     {
-                                        responseStr = ConnAPI.AddCarTask(NextAction.Action, NextAction.ActionType, NextAction.AGVID, DispatchRecord.Storage, 0);
+                                        responseStr = ConnAPI.AddCarTask(NextAction.Action, NextAction.ActionType, NextAction.AGVID, DispatchRecord.Storage);
                                     }
                                 }
                                 else
                                 {
                                     #region 設備取貨前檢查
                                     EquipmentFunc.StatusCheck(DispatchRecord.Storage);
-                                    
-                                    //E84交握
 
-                                    //節點查詢
+                                    //todo : E84交握
 
-                                    responseStr = ConnAPI.AddCarTask(NextAction.Action, NextAction.ActionType, NextAction.AGVID, DispatchRecord.Storage, 0);
+                                    responseStr = ConnAPI.AddCarTask(NextAction.Action, NextAction.ActionType, NextAction.AGVID, DispatchRecord.Storage);
                                     #endregion
                                 }
                                 #endregion
                                 break;
                             case "移動":
-                                responseStr = ConnAPI.AddCarTask(NextAction.Action, NextAction.ActionType, NextAction.AGVID, NextAction.Storage, 0);
+                                responseStr = ConnAPI.AddCarTask(NextAction.Action, NextAction.ActionType, NextAction.AGVID, NextAction.Storage);
                                 break;
                             default:
                                 break;
