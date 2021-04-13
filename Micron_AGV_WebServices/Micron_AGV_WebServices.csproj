@@ -113,7 +113,6 @@
   <ItemGroup>
     <Compile Include="AgvWebService.cs" />
     <Compile Include="DAL\ConnectAPI.cs" />
-    <Compile Include="DAL\ConnectWinform.cs" />
     <Compile Include="DAL\DispatchFunction.cs" />
     <Compile Include="DAL\EquipmentFunction.cs" />
     <Compile Include="DAL\ManagemetFunction.cs" />
@@ -121,6 +120,7 @@
       <DependentUpon>DispatchAndStorage.asmx</DependentUpon>
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Model\AGV_Running.cs" />
     <Compile Include="Model\CarMission.cs" />
     <Compile Include="Model\DispatchErrorLog.cs" />
     <Compile Include="Model\EquipmentStatus.cs" />

@@ -24,6 +24,7 @@ namespace Micron_AGV_WebServices.DAL
         ConnectAPI ConnAPI = new ConnectAPI();
         ManagemetFunction ManagementFunc = new ManagemetFunction();
         EquipmentFunction EquipmentFunc = new EquipmentFunction();
+        AgvWebService EBulletin = new AgvWebService();
 
         //KMR Buffeer
         ArrayList buffer = null;
@@ -93,7 +94,8 @@ namespace Micron_AGV_WebServices.DAL
                         if (WithCarDispatch.AGVID.Contains("AGV"))
                         {
                             responseStr = ConnAPI.AddCarTask(WithCarDispatch.Action, WithCarDispatch.ActionType, WithCarDispatch.AGVID, WithCarDispatch.Storage);
-                            InsertAGVStatus(WithCarDispatch.AGVID, TaskInfo.TaskID, true);
+                            InsertAGVStatus(WithCarDispatch.AGVID, 1, NewTaskListID, true);
+                            EBulletin.EquPurchaseStatus(WithCarDispatch.AGVID,1,DateTime.Now);
                         }
                         // KMR
                         else
@@ -352,6 +354,12 @@ namespace Micron_AGV_WebServices.DAL
                 DispatchRecord.EndTime = DateTime.Now;
                 DispatchRecord.TaskStatus = "完成";
 
+                //目前任務結束
+                InsertAGVStatus(AGVID, DispatchRecord.ActionID, DispatchRecord.TaskListID, false);
+
+                //回報電子看版 Deliver Time
+                EBulletin.DeliverTime(AGVID, DelTimeCalc(AGVID, DispatchRecord.ActionID, DispatchRecord.TaskListID), DateTime.Now);
+
                 //新增Log和編輯儲位
                 if (DispatchRecord.ActionType == "取貨")
                 {
@@ -372,6 +380,9 @@ namespace Micron_AGV_WebServices.DAL
                     //修改下一個任務的開始時間/狀態
                     NextAction.StartTime = DateTime.Now;
                     NextAction.TaskStatus = "執行中";
+
+                    //下個任務開始
+                    InsertAGVStatus(AGVID, DispatchRecord.ActionID + 1, DispatchRecord.TaskListID, false);
 
                     //AGV
                     if (Car.CarType == "AGV")
@@ -484,14 +495,14 @@ namespace Micron_AGV_WebServices.DAL
                     TaskCompleted.TaskAcceptance = CompleteStr;
                     TaskCompleted.EndTime = DateTime.Now;
 
-                    InsertAGVStatus(AGVID, TaskCompleted.TaskID, false);
                     responseStr = ConnAPI.MissionCompleteJson(CompleteStr);
                     _db.SaveChanges();
 
                     var TaskListID = Car.TaskListID;
-
                     Car.Status = "待機中";
                     Car.TaskListID = null;
+
+                    EBulletin.EquPurchaseStatus(AGVID, 2, DateTime.Now);
 
                     // Stored Procedure
                     // TaskList 資料移到 TaskHistory 
@@ -517,6 +528,8 @@ namespace Micron_AGV_WebServices.DAL
 
                         Car.Status = "任務中";
                         Car.TaskListID = WaitingTask.TaskListID;
+
+                        // TODO : 流程再確認
                     }
                     else
                     {
@@ -635,16 +648,23 @@ namespace Micron_AGV_WebServices.DAL
             }
         }
 
-        private void InsertAGVStatus(string AGVID, int TaskID, bool Status)
+        private void InsertAGVStatus(string AGVID, int ActionID, Guid TaskListID, bool Status)
         {
             using (SqlConnection ConnStr = new SqlConnection(WebConfigurationManager.ConnectionStrings["Micron_AGV_DB"].ConnectionString))
             {
                 string InsertStr = "INSERT INTO [AGV_Running] ([AGVID],[Status],[InsertTime],[TaskID]) VALUES (@AGVID,@Status,@Time,@TaskID)";
                 if (Status)
-                    ConnStr.Execute(InsertStr, new { AGVID = AGVID, Status = "任務開始", InsertTime = DateTime.Now, TaskID = TaskID });
+                    ConnStr.Execute(InsertStr, new { AGVID = AGVID, Status = "任務開始", ActionID = ActionID, TaskListID = TaskListID, InsertTime = DateTime.Now });
                 else
-                    ConnStr.Execute(InsertStr, new { AGVID = AGVID, Status = "任務結束", InsertTime = DateTime.Now, TaskID = TaskID });
+                    ConnStr.Execute(InsertStr, new { AGVID = AGVID, Status = "任務結束", ActionID = ActionID, TaskListID = TaskListID, InsertTime = DateTime.Now });
             }
+        }
+
+        private int DelTimeCalc(string AGVID, int ActionID, Guid TaskListID)
+        {
+            var StartTime = _db.AGV_Runnings.Where(x => x.AGVID == AGVID & x.ActionID == ActionID & x.TaskListID == TaskListID & x.Status == "任務開始").Select(x => x.InsertTime).FirstOrDefault();
+            var EndTime = _db.AGV_Runnings.Where(x => x.AGVID == AGVID & x.ActionID == ActionID & x.TaskListID == TaskListID & x.Status == "任務結束").Select(x => x.InsertTime).FirstOrDefault();
+            return DateTime.Compare(EndTime, StartTime);
         }
 
         private void RecordDispatchErrorLog(DateTime Time, string Message, string FunctionName)
