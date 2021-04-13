@@ -21,7 +21,6 @@ namespace Micron_AGV_WebServices
         ManagemetFunction ManagementFunc = new ManagemetFunction();
         DispatchFunction DispatchFunc = new DispatchFunction();
         EquipmentFunction EquipmentFunc = new EquipmentFunction();
-        AgvWebService EBulletin = new AgvWebService();
 
         //[WebMethod]
         //public string[] Shelf_Purchase_Complete_HaveRFID(DateTime PurchaseTime, string PurchaseStorageBin, string PurchaseStatus, string RFID)
@@ -58,29 +57,5 @@ namespace Micron_AGV_WebServices
         {
             return DispatchFunc.MissionComplete(AGVID);
         }
-
-        //[WebMethod]
-        //public bool EquRunning(string eguName, double data_vaule, DateTime record_time)
-        //{
-        //    return EBulletin.EquRunning(eguName, data_vaule, record_time);
-        //}
-
-        //[WebMethod]
-        //public bool DeliverTime(string eguName, int data_vaule, DateTime record_time)
-        //{
-        //    return EBulletin.DeliverTime(eguName, data_vaule, record_time);
-        //}
-
-        //[WebMethod]
-        //public bool EquPurchaseStatus(string eguName, int data_vaule, DateTime record_time)
-        //{
-        //    return EBulletin.EquPurchaseStatus(eguName, data_vaule, record_time);
-        //}
-
-        //[WebMethod]
-        //public bool EquUtlization(string eguName, int data_vaule, DateTime record_time)
-        //{
-        //    return EBulletin.EquUtlization(eguName, data_vaule, record_time);
-        //}
     }
 }
