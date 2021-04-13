@@ -93,6 +93,7 @@ namespace Micron_AGV_WebServices.DAL
                         if (WithCarDispatch.AGVID.Contains("AGV"))
                         {
                             responseStr = ConnAPI.AddCarTask(WithCarDispatch.Action, WithCarDispatch.ActionType, WithCarDispatch.AGVID, WithCarDispatch.Storage);
+                            InsertAGVStatus(WithCarDispatch.AGVID, TaskInfo.TaskID, true);
                         }
                         // KMR
                         else
@@ -483,6 +484,7 @@ namespace Micron_AGV_WebServices.DAL
                     TaskCompleted.TaskAcceptance = CompleteStr;
                     TaskCompleted.EndTime = DateTime.Now;
 
+                    InsertAGVStatus(AGVID, TaskCompleted.TaskID, false);
                     responseStr = ConnAPI.MissionCompleteJson(CompleteStr);
                     _db.SaveChanges();
 
@@ -630,6 +632,18 @@ namespace Micron_AGV_WebServices.DAL
             {
                 string InsertLogStr = "INSERT INTO [PurchaseAndShipmentLog] ([Storage],[UpdateTime],[Cargostatus],[AGVID]) VALUES (@RFID,@Storage,@UpdateTime,@Cargostatus,@AGVID)";
                 int AffectedRows = ConnStr.Execute(InsertLogStr, new { Storage = StorageBin, UpdateTime = DateTime.Now, Cargostatus = Purpose, AGVID = AGVID });
+            }
+        }
+
+        private void InsertAGVStatus(string AGVID, int TaskID, bool Status)
+        {
+            using (SqlConnection ConnStr = new SqlConnection(WebConfigurationManager.ConnectionStrings["Micron_AGV_DB"].ConnectionString))
+            {
+                string InsertStr = "INSERT INTO [AGV_Running] ([AGVID],[Status],[InsertTime],[TaskID]) VALUES (@AGVID,@Status,@Time,@TaskID)";
+                if (Status)
+                    ConnStr.Execute(InsertStr, new { AGVID = AGVID, Status = "任務開始", InsertTime = DateTime.Now, TaskID = TaskID });
+                else
+                    ConnStr.Execute(InsertStr, new { AGVID = AGVID, Status = "任務結束", InsertTime = DateTime.Now, TaskID = TaskID });
             }
         }
 
